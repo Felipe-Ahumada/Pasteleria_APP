@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.pasteleria_app.pasteleria_app.presentation.ui.navigation.Navigation
 import com.pasteleria_app.pasteleria_app.presentation.ui.theme.Pasteleria_APPTheme
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,11 +23,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // 🛒 Creamos el ViewModel global una sola vez
-                    val carritoViewModel: CarritoViewModel = viewModel()
+                    // 🧩 Hilt crea e inyecta automáticamente el ViewModel con el repositorio
+                    val carritoViewModel: CarritoViewModel = hiltViewModel()
 
-                    // 🚀 Lo pasamos al sistema de navegación
-                    Navigation(carritoViewModel)
+                    // 🚀 Navegación principal (pasamos el viewmodel global)
+                    Navigation(carritoViewModel = carritoViewModel)
                 }
             }
         }

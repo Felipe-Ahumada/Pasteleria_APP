@@ -1,63 +1,63 @@
 package com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.pasteleria_app.pasteleria_app.domain.model.Producto
+import com.pasteleria_app.pasteleria_app.domain.repository.CarritoRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-data class ProductoCarrito(
-    val nombre: String,
-    val precio: Int,
-    val imagen: Int,
-    var cantidad: Int = 1
-)
+@HiltViewModel
+class CarritoViewModel @Inject constructor(
+    private val repository: CarritoRepository
+) : ViewModel() {
 
-class CarritoViewModel : ViewModel() {
+    private val _productos = MutableStateFlow<List<Producto>>(emptyList())
+    val productos: StateFlow<List<Producto>> = _productos.asStateFlow()
 
-    private val _productos = mutableStateListOf<ProductoCarrito>()
-    val productos: List<ProductoCarrito> get() = _productos
-
-    // 🛒 Agregar producto (si existe, aumenta cantidad)
-    fun agregarProducto(producto: ProductoCarrito) {
-        val existente = _productos.find { it.nombre == producto.nombre }
-        if (existente != null) {
-            existente.cantidad++
-        } else {
-            _productos.add(producto)
-        }
-    }
-
-    // ➕ Aumentar cantidad
-    fun aumentarCantidad(producto: ProductoCarrito) {
-        val index = _productos.indexOfFirst { it.nombre == producto.nombre }
-        if (index != -1) _productos[index] = _productos[index].copy(
-            cantidad = _productos[index].cantidad + 1
-        )
-    }
-
-    // ➖ Disminuir cantidad (elimina si llega a 0)
-    fun disminuirCantidad(producto: ProductoCarrito) {
-        val index = _productos.indexOfFirst { it.nombre == producto.nombre }
-        if (index != -1) {
-            val cantidadActual = _productos[index].cantidad
-            if (cantidadActual > 1) {
-                _productos[index] = _productos[index].copy(cantidad = cantidadActual - 1)
-            } else {
-                _productos.removeAt(index)
+    init {
+        // Observa cambios en la base de datos en tiempo real
+        viewModelScope.launch {
+            repository.obtenerProductos().collectLatest {
+                _productos.value = it
             }
         }
     }
 
-    // ❌ Eliminar producto
-    fun eliminarProducto(producto: ProductoCarrito) {
-        _productos.removeAll { it.nombre == producto.nombre }
+    fun agregarProducto(producto: Producto) {
+        viewModelScope.launch { repository.agregarProducto(producto) }
     }
 
-    // 🧹 Vaciar carrito
+    fun aumentarCantidad(producto: Producto) {
+        viewModelScope.launch {
+            val actualizado = producto.copy(cantidad = producto.cantidad + 1)
+            repository.actualizarCantidad(actualizado)
+        }
+    }
+
+    fun disminuirCantidad(producto: Producto) {
+        viewModelScope.launch {
+            if (producto.cantidad > 1) {
+                val actualizado = producto.copy(cantidad = producto.cantidad - 1)
+                repository.actualizarCantidad(actualizado)
+            } else {
+                repository.eliminarProducto(producto)
+            }
+        }
+    }
+
+    fun eliminarProducto(producto: Producto) {
+        viewModelScope.launch { repository.eliminarProducto(producto) }
+    }
+
     fun vaciarCarrito() {
-        _productos.clear()
+        viewModelScope.launch { repository.vaciarCarrito() }
     }
 
-    // 💰 Calcular total
-    fun calcularTotal(): Int {
-        return _productos.sumOf { it.precio * it.cantidad }
-    }
+    fun calcularTotal(): Int = productos.value.sumOf { it.precio * it.cantidad }
 }

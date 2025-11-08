@@ -28,7 +28,7 @@ fun PasteleriaScaffold(
     onOpenCarta: () -> Unit = {},
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
-    carritoViewModel: CarritoViewModel? = null, // ✅ Nuevo parámetro opcional
+    carritoViewModel: CarritoViewModel? = null, // ✅ Puede ser null
     content: @Composable (PaddingValues) -> Unit
 ) {
     val crema = MaterialTheme.colorScheme.background
@@ -36,7 +36,11 @@ fun PasteleriaScaffold(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    val totalProductos = carritoViewModel?.productos?.sumOf { it.cantidad } ?: 0
+    // ✅ Observa los productos del carrito en tiempo real
+    val productos by carritoViewModel?.productos?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
+
+    // ✅ Calcula el total de productos (cantidad total de items)
+    val totalProductos = productos.sumOf { it.cantidad }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -67,9 +71,7 @@ fun PasteleriaScaffold(
                         )
                     },
                     actions = {
-                        Box(
-                            contentAlignment = Alignment.TopEnd
-                        ) {
+                        Box(contentAlignment = Alignment.TopEnd) {
                             IconButton(onClick = onOpenCarrito) {
                                 Icon(
                                     imageVector = Icons.Default.ShoppingCart,
@@ -78,7 +80,7 @@ fun PasteleriaScaffold(
                                 )
                             }
 
-                            // 🎯 Badge visible solo si hay productos
+                            // 🎯 Muestra badge si hay productos
                             if (totalProductos > 0) {
                                 Box(
                                     modifier = Modifier
@@ -152,8 +154,8 @@ fun DrawerContent(
         }
 
         Spacer(modifier = Modifier.weight(1f))
-
         Divider(color = Color.White.copy(alpha = 0.3f))
+
         Text(
             text = "admin",
             color = Color.White,

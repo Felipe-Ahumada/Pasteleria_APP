@@ -20,9 +20,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pasteleria_app.pasteleria_app.R
+import com.pasteleria_app.pasteleria_app.domain.model.Producto
 import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaScaffold
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
-import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.ProductoCarrito
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -39,7 +39,7 @@ fun CartaScreen(
     onOpenCarta: () -> Unit = {},
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
-    carritoViewModel: CarritoViewModel // ✅ agregado aquí
+    carritoViewModel: CarritoViewModel
 ) {
     val crema = MaterialTheme.colorScheme.background
     val marron = MaterialTheme.colorScheme.primary
@@ -51,7 +51,6 @@ fun CartaScreen(
         ProductoCarta("Cheesecake Sin Azúcar", "$47.000", R.drawable.cheesecake_sin_azucar)
     )
 
-    // 🎯 Snackbar state
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -63,10 +62,8 @@ fun CartaScreen(
         onOpenContacto = onOpenContacto,
         onOpenCarrito = onOpenCarrito,
         carritoViewModel = carritoViewModel
-
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
-
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier
@@ -79,15 +76,17 @@ fun CartaScreen(
             ) {
                 items(productos) { producto ->
                     ProductoCard(producto, marron) {
-                        carritoViewModel.agregarProducto(
-                            ProductoCarrito(
-                                nombre = producto.nombre,
-                                precio = producto.precio.replace("$", "").replace(".", "").toInt(),
-                                imagen = producto.imagen
-                            )
+                        // ✅ Crear un Producto (Room model) a partir de ProductoCarta
+                        val productoEntity = Producto(
+                            id = 0, // Room lo autogenera
+                            nombre = producto.nombre,
+                            precio = producto.precio.replace("$", "").replace(".", "").toInt(),
+                            imagen = producto.imagen,
+                            cantidad = 1
                         )
 
-                        // 🎉 Mostrar snackbar
+                        carritoViewModel.agregarProducto(productoEntity)
+
                         scope.launch {
                             snackbarHostState.showSnackbar("Producto agregado al carrito 🍰")
                         }
@@ -95,7 +94,6 @@ fun CartaScreen(
                 }
             }
 
-            // 📢 Snackbar visual
             SnackbarHost(
                 hostState = snackbarHostState,
                 modifier = Modifier
@@ -116,7 +114,6 @@ fun CartaScreen(
 @Composable
 fun ProductoCard(producto: ProductoCarta, marron: Color, onAddToCart: () -> Unit) {
     var agregado by remember { mutableStateOf(false) }
-
     val scope = rememberCoroutineScope()
 
     Card(

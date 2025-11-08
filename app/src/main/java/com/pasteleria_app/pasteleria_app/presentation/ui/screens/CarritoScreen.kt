@@ -2,13 +2,12 @@ package com.pasteleria_app.pasteleria_app.presentation.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,9 +17,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pasteleria_app.pasteleria_app.domain.model.Producto
 import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaScaffold
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
-import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.ProductoCarrito
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun CarritoScreen(
@@ -31,7 +31,8 @@ fun CarritoScreen(
     onOpenCarrito: () -> Unit = {},
     carritoViewModel: CarritoViewModel
 ) {
-    val productos = carritoViewModel.productos
+    // ✅ Observar productos en tiempo real (desde Room)
+    val productos by carritoViewModel.productos.collectAsState()
     val total = carritoViewModel.calcularTotal()
 
     PasteleriaScaffold(
@@ -51,7 +52,7 @@ fun CarritoScreen(
                 .padding(padding),
             contentPadding = PaddingValues(16.dp)
         ) {
-            // Encabezado
+            // 🧾 Encabezado
             item {
                 Row(
                     modifier = Modifier
@@ -66,7 +67,7 @@ fun CarritoScreen(
                 Divider(color = Color(0xFFE0D8C6), thickness = 1.dp)
             }
 
-            // Productos
+            // 🧁 Productos del carrito
             items(productos) { producto ->
                 CarritoItem(
                     producto = producto,
@@ -77,22 +78,23 @@ fun CarritoScreen(
                 Divider(color = Color(0xFFE0D8C6), thickness = 1.dp)
             }
 
-            // Vaciar carrito
+            // 🗑️ Vaciar carrito
             if (productos.isNotEmpty()) {
                 item {
                     OutlinedButton(
                         onClick = { carritoViewModel.vaciarCarrito() },
-                        border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD32F2F)),
                         shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.padding(vertical = 12.dp)
+                        modifier = Modifier
+                            .padding(vertical = 12.dp)
+                            .fillMaxWidth()
                     ) {
                         Text("Vaciar carrito", fontWeight = FontWeight.Bold)
                     }
                 }
             }
 
-            // Resumen
+            // 💰 Resumen de compra
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -146,7 +148,7 @@ fun CarritoScreen(
 
 @Composable
 fun CarritoItem(
-    producto: ProductoCarrito,
+    producto: Producto,
     onIncrement: () -> Unit,
     onDecrement: () -> Unit,
     onRemove: () -> Unit
@@ -159,7 +161,7 @@ fun CarritoItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Imagen + nombre
+        // 🖼️ Imagen + nombre
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1.5f)
@@ -185,7 +187,7 @@ fun CarritoItem(
             }
         }
 
-        // Cantidad
+        // 🔢 Cantidad
         Row(
             modifier = Modifier.weight(1f),
             horizontalArrangement = Arrangement.Center,
@@ -216,7 +218,7 @@ fun CarritoItem(
             }
         }
 
-        // Precio + eliminar
+        // 💵 Precio + eliminar
         Column(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.End,
@@ -226,7 +228,7 @@ fun CarritoItem(
 
             OutlinedButton(
                 onClick = onRemove,
-                border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp),
+                border = ButtonDefaults.outlinedButtonBorder,
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD32F2F)),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.padding(top = 6.dp)
@@ -237,18 +239,17 @@ fun CarritoItem(
     }
 }
 
-// $45.000
+// 💰 Formatea precio en CLP (con puntos)
 private fun formateaCLP(valor: Int): String =
     "$" + "%,d".format(valor).replace(',', '.')
 
-// TC001, PI002, etc.
+// 🧁 Genera código de producto
 private fun codigoDesdeNombre(nombre: String): String {
-    val base = nombre.take(2).uppercase().replace(" ", "")
     val tipo = when {
         nombre.contains("Torta", true) -> "TC"
         nombre.contains("Pie", true) -> "PI"
         else -> "PR"
     }
     val num = (100..999).random()
-    return "$tipo${num}"
+    return "$tipo$num"
 }
