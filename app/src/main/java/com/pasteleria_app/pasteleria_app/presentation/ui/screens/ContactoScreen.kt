@@ -3,8 +3,6 @@ package com.pasteleria_app.pasteleria_app.presentation.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,53 +14,41 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaScaffold
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContactoScreen(onBackClick: () -> Unit = {}) {
+fun ContactoScreen(
+    onOpenHome: () -> Unit = {},
+    onOpenNosotros: () -> Unit = {},
+    onOpenCarta: () -> Unit = {},
+    onOpenContacto: () -> Unit = {},
+    onOpenCarrito: () -> Unit = {}
+) {
     val crema = MaterialTheme.colorScheme.background
     val marron = MaterialTheme.colorScheme.primary
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var nombre by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var comentario by remember { mutableStateOf("") }
 
     val maxChars = 500
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
-    var mostrarDialogoExito by remember { mutableStateOf(false) }
-
     val correoValido = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$").matches(correo.trim())
     val formularioValido =
         nombre.isNotBlank() && correoValido && comentario.isNotBlank() && comentario.length <= maxChars
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "CONTÁCTANOS",
-                        color = marron,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 22.sp
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = marron
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = crema
+    var mostrarDialogoExito by remember { mutableStateOf(false) }
+
+    PasteleriaScaffold(
+        title = "Contáctanos",
+        onOpenHome = onOpenHome,
+        onOpenNosotros = onOpenNosotros,
+        onOpenCarta = onOpenCarta,
+        onOpenContacto = onOpenContacto,
+        onOpenCarrito = onOpenCarrito
     ) { padding ->
         Box(
             modifier = Modifier
@@ -85,7 +71,7 @@ fun ContactoScreen(onBackClick: () -> Unit = {}) {
                         .padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Nombre
+                    // 🧁 Nombre
                     OutlinedTextField(
                         value = nombre,
                         onValueChange = { nombre = it },
@@ -94,7 +80,7 @@ fun ContactoScreen(onBackClick: () -> Unit = {}) {
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Correo
+                    // ✉️ Correo
                     OutlinedTextField(
                         value = correo,
                         onValueChange = { correo = it },
@@ -109,7 +95,7 @@ fun ContactoScreen(onBackClick: () -> Unit = {}) {
                         }
                     )
 
-                    // Comentario
+                    // 💬 Comentario
                     OutlinedTextField(
                         value = comentario,
                         onValueChange = {
@@ -125,7 +111,7 @@ fun ContactoScreen(onBackClick: () -> Unit = {}) {
                         }
                     )
 
-                    // Botón enviar
+                    // 📤 Botón Enviar
                     Button(
                         onClick = {
                             if (formularioValido) {

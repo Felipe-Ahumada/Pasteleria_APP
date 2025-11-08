@@ -7,8 +7,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pasteleria_app.pasteleria_app.R
+import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaScaffold
 
 data class ProductoCarta(
     val nombre: String,
@@ -29,52 +28,38 @@ data class ProductoCarta(
     val imagen: Int
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartaScreen(onBackClick: () -> Unit = {}) {
+fun CartaScreen(
+    onOpenHome: () -> Unit = {},
+    onOpenNosotros: () -> Unit = {},
+    onOpenCarta: () -> Unit = {},
+    onOpenContacto: () -> Unit = {},
+    onOpenCarrito: () -> Unit = {}
+) {
     val crema = MaterialTheme.colorScheme.background
     val marron = MaterialTheme.colorScheme.primary
 
     val productos = listOf(
         ProductoCarta("Torta Cuadrada de Chocolate", "$45.000", R.drawable.torta_cuadrada_de_chocolate),
         ProductoCarta("Torta Circular de Vainilla", "$40.000", R.drawable.torta_circular_de_vainilla),
-        ProductoCarta("Torta Cuadrada de Frutas", "$50.000", R.drawable.torta_circular_de_vainilla),
-        ProductoCarta("Torta Circular de Manjar", "$42.000", R.drawable.torta_circular_de_manjar),
         ProductoCarta("Tiramisú Clásico", "$5.500", R.drawable.tiramisu_clasico),
         ProductoCarta("Cheesecake Sin Azúcar", "$47.000", R.drawable.cheesecake_sin_azucar)
     )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Nuestra Carta",
-                        color = marron,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = marron
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        },
-        containerColor = crema
+    PasteleriaScaffold(
+        title = "Nuestra Carta",
+        onOpenHome = onOpenHome,
+        onOpenNosotros = onOpenNosotros,
+        onOpenCarta = onOpenCarta,
+        onOpenContacto = onOpenContacto,
+        onOpenCarrito = onOpenCarrito
     ) { padding ->
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .background(crema),
+                .background(crema)
+                .padding(padding),
             contentPadding = PaddingValues(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -127,14 +112,14 @@ fun ProductoCard(producto: ProductoCarta, marron: Color) {
                 modifier = Modifier.padding(bottom = 10.dp)
             )
 
-            // 🍫 Botón 1 — Ver detalle y personalizar (altura ampliada)
+            // 🍫 Botón 1 — Ver detalle y personalizar
             Button(
                 onClick = { /* TODO: ir a detalle */ },
                 colors = ButtonDefaults.buttonColors(containerColor = marron),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
-                    .heightIn(min = 55.dp) // más alto
+                    .heightIn(min = 55.dp)
                     .padding(bottom = 6.dp)
             ) {
                 Text(
@@ -143,7 +128,7 @@ fun ProductoCard(producto: ProductoCarta, marron: Color) {
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
-                    lineHeight = 16.sp // mejora legibilidad en 2 líneas si es necesario
+                    lineHeight = 16.sp
                 )
             }
 

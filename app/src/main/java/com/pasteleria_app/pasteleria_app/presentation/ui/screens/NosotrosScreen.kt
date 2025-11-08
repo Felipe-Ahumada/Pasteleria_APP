@@ -1,12 +1,11 @@
 package com.pasteleria_app.pasteleria_app.presentation.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,49 +19,39 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pasteleria_app.pasteleria_app.R
-import androidx.compose.foundation.background
+import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaScaffold
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NosotrosScreen(onBackClick: () -> Unit = {}) {
+fun NosotrosScreen(
+    onOpenHome: () -> Unit = {},
+    onOpenNosotros: () -> Unit = {},
+    onOpenCarta: () -> Unit = {},
+    onOpenContacto: () -> Unit = {},
+    onOpenCarrito: () -> Unit = {}
+) {
     val crema = MaterialTheme.colorScheme.background
     val marron = MaterialTheme.colorScheme.primary
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo_landing),
-                        contentDescription = "Logo Pastelería Mil Sabores",
-                        modifier = Modifier.height(45.dp)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = marron
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        },
-        containerColor = crema
+    PasteleriaScaffold(
+        title = "Nosotros",
+        onOpenHome = onOpenHome,
+        onOpenNosotros = onOpenNosotros,
+        onOpenCarta = onOpenCarta,
+        onOpenContacto = onOpenContacto,
+        onOpenCarrito = onOpenCarrito
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
+                .background(crema)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 🔸 QUIÉNES SOMOS
-            Section(
-                imagen = R.drawable.vista_pasteleria_mil_sabores, // usa tu imagen real
+            // 🔸 Sección "Quiénes Somos"
+            SectionNosotros(
+                imagen = R.drawable.vista_pasteleria_mil_sabores,
                 titulo = "Quiénes Somos",
                 descripcion = """
                     En Pastelería 1000 Sabores celebramos 50 años de historia endulzando momentos únicos y siendo un referente de la repostería chilena. 
@@ -72,27 +61,27 @@ fun NosotrosScreen(onBackClick: () -> Unit = {}) {
                 """.trimIndent()
             )
 
-            // 🔸 MISIÓN
-            Section(
-                imagen = R.drawable.diversos_productos, // usa tu imagen real
+            // 🔸 Misión
+            SectionNosotros(
+                imagen = R.drawable.diversos_productos,
                 titulo = "Misión",
                 descripcion = """
                     Ofrecer una experiencia dulce y memorable a nuestros clientes, proporcionando tortas y productos de repostería de alta calidad para todas las ocasiones, mientras celebramos nuestras raíces históricas y fomentamos la creatividad en la repostería.
                 """.trimIndent()
             )
 
-            // 🔸 VISIÓN
-            Section(
-                imagen = R.drawable.persona_trabajando_en_una_cocina, // usa tu imagen real
+            // 🔸 Visión
+            SectionNosotros(
+                imagen = R.drawable.estudiante_de_reposteria_aprendiendo_en_la_cocina,
                 titulo = "Visión",
                 descripcion = """
                     Convertirnos en la tienda online líder de productos de repostería en Chile, conocida por nuestra innovación, calidad y el impacto positivo en la comunidad, especialmente en la formación de nuevos talentos en gastronomía.
                 """.trimIndent()
             )
 
-            // 🔸 IMPACTO COMUNITARIO
-            Section(
-                imagen = R.drawable.estudiante_de_reposteria_aprendiendo_en_la_cocina, // usa tu imagen real
+            // 🔸 Impacto Comunitario
+            SectionNosotros(
+                imagen = R.drawable.persona_trabajando_en_una_cocina,
                 titulo = "Impacto Comunitario",
                 descripcion = """
                     Cada compra en Pastelería 1000 Sabores apoya a estudiantes de gastronomía y a la comunidad local, contribuyendo a que nuevas generaciones de reposteros sigan creando y compartiendo su arte.
@@ -105,7 +94,7 @@ fun NosotrosScreen(onBackClick: () -> Unit = {}) {
 }
 
 @Composable
-fun Section(imagen: Int, titulo: String, descripcion: String) {
+fun SectionNosotros(imagen: Int, titulo: String, descripcion: String) {
     val marron = Color(0xFF8B4513)
     val cremaFondo = Color(0xFFFFF6E9)
 

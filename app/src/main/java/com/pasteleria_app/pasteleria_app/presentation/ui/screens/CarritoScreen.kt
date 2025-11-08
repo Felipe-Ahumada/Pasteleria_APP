@@ -3,8 +3,6 @@ package com.pasteleria_app.pasteleria_app.presentation.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,42 +12,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaScaffold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CarritoScreen(
-    onBackClick: () -> Unit = {},
-    onVerProductos: () -> Unit = {} // 👈 Navega a la carta
+    onOpenHome: () -> Unit = {},
+    onOpenNosotros: () -> Unit = {},
+    onOpenCarta: () -> Unit = {},
+    onOpenContacto: () -> Unit = {},
+    onOpenCarrito: () -> Unit = {}
 ) {
     val crema = MaterialTheme.colorScheme.background
     val marron = MaterialTheme.colorScheme.primary
 
-    var carrito by remember { mutableStateOf(emptyList<String>()) } // 🛒 lista de productos temporal
+    var carrito by remember { mutableStateOf(emptyList<String>()) } // 🛒 lista temporal
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Carrito de compras",
-                        color = marron,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = marron
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        },
-        containerColor = crema
+    PasteleriaScaffold(
+        title = "Carrito de compras",
+        onOpenHome = onOpenHome,
+        onOpenNosotros = onOpenNosotros,
+        onOpenCarta = onOpenCarta,
+        onOpenContacto = onOpenContacto,
+        onOpenCarrito = onOpenCarrito
     ) { padding ->
         Column(
             modifier = Modifier
@@ -59,7 +44,7 @@ fun CarritoScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 🧾 Encabezado
+            // 🧾 Encabezado de tabla
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -82,9 +67,7 @@ fun CarritoScreen(
                         .background(Color(0xFFF5F2EC), RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "Tu carrito está vacío",
                             fontSize = 18.sp,
@@ -92,7 +75,7 @@ fun CarritoScreen(
                             modifier = Modifier.padding(bottom = 12.dp)
                         )
                         Button(
-                            onClick = onVerProductos,
+                            onClick = onOpenCarta,
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC49A6C)),
                             shape = RoundedCornerShape(10.dp)
                         ) {
