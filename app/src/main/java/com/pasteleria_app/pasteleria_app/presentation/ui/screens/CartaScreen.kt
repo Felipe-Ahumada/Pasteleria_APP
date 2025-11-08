@@ -61,7 +61,9 @@ fun CartaScreen(
         onOpenNosotros = onOpenNosotros,
         onOpenCarta = onOpenCarta,
         onOpenContacto = onOpenContacto,
-        onOpenCarrito = onOpenCarrito
+        onOpenCarrito = onOpenCarrito,
+        carritoViewModel = carritoViewModel
+
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
 

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pasteleria_app.pasteleria_app.R
 import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaScaffold
+import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
 
 data class Categoria(
     val nombre: String,
@@ -32,7 +33,8 @@ fun HomeScreen(
     onOpenNosotros: () -> Unit = {},
     onOpenCarta: () -> Unit = {},
     onOpenContacto: () -> Unit = {},
-    onOpenCarrito: () -> Unit = {}
+    onOpenCarrito: () -> Unit = {},
+    carritoViewModel: CarritoViewModel // ✅ añadimos ViewModel para mostrar badge
 ) {
     val crema = MaterialTheme.colorScheme.background
     val marron = MaterialTheme.colorScheme.primary
@@ -51,7 +53,8 @@ fun HomeScreen(
         onOpenNosotros = onOpenNosotros,
         onOpenCarta = onOpenCarta,
         onOpenContacto = onOpenContacto,
-        onOpenCarrito = onOpenCarrito
+        onOpenCarrito = onOpenCarrito,
+        carritoViewModel = carritoViewModel // ✅ activa la badge
     ) { padding ->
         LazyColumn(
             modifier = Modifier

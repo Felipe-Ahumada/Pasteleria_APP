@@ -3,22 +3,20 @@ package com.pasteleria_app.pasteleria_app.presentation.ui.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pasteleria_app.pasteleria_app.R
+import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,10 +28,15 @@ fun PasteleriaScaffold(
     onOpenCarta: () -> Unit = {},
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
+    carritoViewModel: CarritoViewModel? = null, // ✅ Nuevo parámetro opcional
     content: @Composable (PaddingValues) -> Unit
 ) {
+    val crema = MaterialTheme.colorScheme.background
+    val marron = MaterialTheme.colorScheme.primary
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    val totalProductos = carritoViewModel?.productos?.sumOf { it.cantidad } ?: 0
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -59,12 +62,41 @@ fun PasteleriaScaffold(
                     title = {
                         Text(
                             text = title,
-                            color = Color(0xFF3E2E20),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
+                            color = marron,
+                            style = MaterialTheme.typography.titleLarge
                         )
                     },
-                    navigationIcon = {
+                    actions = {
+                        Box(
+                            contentAlignment = Alignment.TopEnd
+                        ) {
+                            IconButton(onClick = onOpenCarrito) {
+                                Icon(
+                                    imageVector = Icons.Default.ShoppingCart,
+                                    contentDescription = "Carrito",
+                                    tint = marron
+                                )
+                            }
+
+                            // 🎯 Badge visible solo si hay productos
+                            if (totalProductos > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(18.dp)
+                                        .offset(x = (-6).dp, y = 6.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFD32F2F)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = totalProductos.toString(),
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+                            }
+                        }
+
                         IconButton(onClick = {
                             scope.launch {
                                 if (drawerState.isClosed) drawerState.open() else drawerState.close()
@@ -73,31 +105,25 @@ fun PasteleriaScaffold(
                             Icon(
                                 imageVector = Icons.Default.Menu,
                                 contentDescription = "Menú",
-                                tint = Color(0xFF3E2E20)
+                                tint = marron
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
                 )
             },
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = crema,
             content = content
         )
     }
 }
 
 @Composable
-private fun DrawerContent(
+fun DrawerContent(
     onItemClick: (String) -> Unit,
     onClose: () -> Unit
 ) {
-    val menuItems = listOf(
-        "Inicio",
-        "Nosotros",
-        "Carta",
-        "Contacto",
-        "Carrito de Compra"
-    )
+    val menuItems = listOf("Inicio", "Nosotros", "Carta", "Contacto", "Carrito de Compra")
 
     Column(
         modifier = Modifier
@@ -107,54 +133,31 @@ private fun DrawerContent(
             .padding(vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 🍰 Logo
         Image(
             painter = painterResource(id = R.drawable.logo_landing),
             contentDescription = "Logo Pastelería",
             modifier = Modifier
                 .size(100.dp)
                 .padding(bottom = 16.dp)
-                .clip(RoundedCornerShape(8.dp))
         )
 
-        // 📋 Opciones del menú
         menuItems.forEach { item ->
-            TextButton(
-                onClick = { onItemClick(item) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            TextButton(onClick = { onItemClick(item) }, modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = item,
                     color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    style = MaterialTheme.typography.titleMedium
                 )
             }
         }
 
         Spacer(modifier = Modifier.weight(1f))
-        Divider(color = Color.White.copy(alpha = 0.3f))
 
-        // 👤 Usuario (por ahora fijo)
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                tint = Color.White
-            )
-            Text(
-                text = "admin",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
+        Divider(color = Color.White.copy(alpha = 0.3f))
+        Text(
+            text = "admin",
+            color = Color.White,
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }
