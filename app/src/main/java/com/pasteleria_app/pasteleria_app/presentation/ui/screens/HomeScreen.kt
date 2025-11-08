@@ -34,7 +34,8 @@ data class Categoria(
 fun HomeScreen(
     onOpenNosotros: () -> Unit = {},
     onOpenCarta: () -> Unit = {},
-    onOpenContacto: () -> Unit = {}
+    onOpenContacto: () -> Unit = {},
+    onOpenCarrito: () -> Unit = {}
 ) {
     val crema = MaterialTheme.colorScheme.background
     val marron = MaterialTheme.colorScheme.primary
@@ -64,6 +65,7 @@ fun HomeScreen(
                             scope.launch { drawerState.close() }
                         }
                         "Contacto" -> { onOpenContacto(); scope.launch { drawerState.close() } }
+                        "Carrito de Compra" -> { onOpenCarrito(); scope.launch { drawerState.close() } }
                         else -> scope.launch { drawerState.close() }
                     }
                 },
