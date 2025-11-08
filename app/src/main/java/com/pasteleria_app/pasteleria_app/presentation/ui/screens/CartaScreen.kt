@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,6 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pasteleria_app.pasteleria_app.R
 import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaScaffold
+import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
+import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.ProductoCarrito
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 data class ProductoCarta(
     val nombre: String,
@@ -34,7 +38,8 @@ fun CartaScreen(
     onOpenNosotros: () -> Unit = {},
     onOpenCarta: () -> Unit = {},
     onOpenContacto: () -> Unit = {},
-    onOpenCarrito: () -> Unit = {}
+    onOpenCarrito: () -> Unit = {},
+    carritoViewModel: CarritoViewModel // ✅ agregado aquí
 ) {
     val crema = MaterialTheme.colorScheme.background
     val marron = MaterialTheme.colorScheme.primary
@@ -46,6 +51,10 @@ fun CartaScreen(
         ProductoCarta("Cheesecake Sin Azúcar", "$47.000", R.drawable.cheesecake_sin_azucar)
     )
 
+    // 🎯 Snackbar state
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     PasteleriaScaffold(
         title = "Nuestra Carta",
         onOpenHome = onOpenHome,
@@ -54,25 +63,60 @@ fun CartaScreen(
         onOpenContacto = onOpenContacto,
         onOpenCarrito = onOpenCarrito
     ) { padding ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .background(crema)
-                .padding(padding),
-            contentPadding = PaddingValues(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(productos) { producto ->
-                ProductoCard(producto, marron)
+        Box(modifier = Modifier.fillMaxSize()) {
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(crema)
+                    .padding(padding),
+                contentPadding = PaddingValues(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(productos) { producto ->
+                    ProductoCard(producto, marron) {
+                        carritoViewModel.agregarProducto(
+                            ProductoCarrito(
+                                nombre = producto.nombre,
+                                precio = producto.precio.replace("$", "").replace(".", "").toInt(),
+                                imagen = producto.imagen
+                            )
+                        )
+
+                        // 🎉 Mostrar snackbar
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Producto agregado al carrito 🍰")
+                        }
+                    }
+                }
+            }
+
+            // 📢 Snackbar visual
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 20.dp)
+            ) { snackbarData ->
+                Snackbar(
+                    snackbarData,
+                    containerColor = Color(0xFFF5E9D3),
+                    contentColor = Color(0xFF3E2E20),
+                    shape = RoundedCornerShape(12.dp)
+                )
             }
         }
     }
 }
 
 @Composable
-fun ProductoCard(producto: ProductoCarta, marron: Color) {
+fun ProductoCard(producto: ProductoCarta, marron: Color, onAddToCart: () -> Unit) {
+    var agregado by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -112,9 +156,8 @@ fun ProductoCard(producto: ProductoCarta, marron: Color) {
                 modifier = Modifier.padding(bottom = 10.dp)
             )
 
-            // 🍫 Botón 1 — Ver detalle y personalizar
             Button(
-                onClick = { /* TODO: ir a detalle */ },
+                onClick = { /* TODO: Ver detalle */ },
                 colors = ButtonDefaults.buttonColors(containerColor = marron),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
@@ -132,19 +175,27 @@ fun ProductoCard(producto: ProductoCarta, marron: Color) {
                 )
             }
 
-            // 🍮 Botón 2 — Añadir al carrito
             Button(
-                onClick = { /* TODO: añadir al carrito */ },
-                colors = ButtonDefaults.buttonColors(containerColor = marron),
+                onClick = {
+                    onAddToCart()
+                    agregado = true
+                    scope.launch {
+                        delay(2000)
+                        agregado = false
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (agregado) Color(0xFFF5E9D3) else marron
+                ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
                     .heightIn(min = 50.dp)
             ) {
                 Text(
-                    "Añadir al carrito",
+                    if (agregado) "Agregado ✅" else "Añadir al carrito",
                     fontSize = 13.sp,
-                    color = Color.White,
+                    color = if (agregado) Color(0xFF3E2E20) else Color.White,
                     fontWeight = FontWeight.Bold
                 )
             }

@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.pasteleria_app.pasteleria_app.presentation.ui.screens.*
+import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
 
 // 🚀 Definimos las rutas principales de la app
 sealed class Screen(val route: String) {
@@ -17,12 +18,11 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun Navigation() {
+fun Navigation(carritoViewModel: CarritoViewModel) {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        // 👇 Puedes cambiar a Screen.Home.route si prefieres empezar ahí
         startDestination = Screen.Landing.route
     ) {
         // 🎬 Landing Page
@@ -46,154 +46,56 @@ fun Navigation() {
                         launchSingleTop = true
                     }
                 },
-                onOpenNosotros = {
-                    navController.navigate(Screen.Nosotros.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenCarta = {
-                    navController.navigate(Screen.Carta.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenContacto = {
-                    navController.navigate(Screen.Contacto.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenCarrito = {
-                    navController.navigate(Screen.Carrito.route) {
-                        launchSingleTop = true
-                    }
-                }
-            )
-        }
-
-        // 👩‍🍳 Nosotros
-        composable(Screen.Nosotros.route) {
-            NosotrosScreen(
-                onOpenHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
-                onOpenNosotros = {
-                    navController.navigate(Screen.Nosotros.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenCarta = {
-                    navController.navigate(Screen.Carta.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenContacto = {
-                    navController.navigate(Screen.Contacto.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenCarrito = {
-                    navController.navigate(Screen.Carrito.route) {
-                        launchSingleTop = true
-                    }
-                }
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) }
             )
         }
 
         // 🍰 Carta
         composable(Screen.Carta.route) {
             CartaScreen(
-                onOpenHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
-                onOpenNosotros = {
-                    navController.navigate(Screen.Nosotros.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenCarta = {
-                    navController.navigate(Screen.Carta.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenContacto = {
-                    navController.navigate(Screen.Contacto.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenCarrito = {
-                    navController.navigate(Screen.Carrito.route) {
-                        launchSingleTop = true
-                    }
-                }
-            )
-        }
-
-        // 💌 Contacto
-        composable(Screen.Contacto.route) {
-            ContactoScreen(
-                onOpenHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
-                onOpenNosotros = {
-                    navController.navigate(Screen.Nosotros.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenCarta = {
-                    navController.navigate(Screen.Carta.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenContacto = {
-                    navController.navigate(Screen.Contacto.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenCarrito = {
-                    navController.navigate(Screen.Carrito.route) {
-                        launchSingleTop = true
-                    }
-                }
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                carritoViewModel = carritoViewModel // 👈 Aquí compartimos el mismo carrito
             )
         }
 
         // 🛒 Carrito
         composable(Screen.Carrito.route) {
             CarritoScreen(
-                onOpenHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
-                onOpenNosotros = {
-                    navController.navigate(Screen.Nosotros.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenCarta = {
-                    navController.navigate(Screen.Carta.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenContacto = {
-                    navController.navigate(Screen.Contacto.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenCarrito = {
-                    navController.navigate(Screen.Carrito.route) {
-                        launchSingleTop = true
-                    }
-                }
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                carritoViewModel = carritoViewModel // 👈 Mismo ViewModel compartido
+            )
+        }
+
+        // 👩‍🍳 Nosotros
+        composable(Screen.Nosotros.route) {
+            NosotrosScreen(
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) }
+            )
+        }
+
+        // 💌 Contacto
+        composable(Screen.Contacto.route) {
+            ContactoScreen(
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) }
             )
         }
     }
