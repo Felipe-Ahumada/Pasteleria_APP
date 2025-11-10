@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Photo
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     onOpenHome: () -> Unit = {},
@@ -50,44 +51,51 @@ fun ProfileScreen(
     val usuarioViewModel: UsuarioViewModel = hiltViewModel()
     val nombreUsuario by usuarioViewModel.usuarioActual.collectAsState(initial = "")
     val correoUsuario by usuarioViewModel.usuarioCorreo.collectAsState(initial = "")
+    val fotoGuardada by usuarioViewModel.usuarioFoto.collectAsState(initial = null)
+
     val crema = MaterialTheme.colorScheme.background
     val marron = MaterialTheme.colorScheme.primary
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // 📸 Estado de imagen de perfil
     var fotoPerfil by remember { mutableStateOf<Uri?>(null) }
 
-    // 📱 Control del diálogo
+    // 🔁 Actualiza foto al cambiar en DataStore
+    LaunchedEffect(fotoGuardada) {
+        fotoPerfil = fotoGuardada?.let { Uri.parse(it) }
+    }
+
     var mostrarDialogo by remember { mutableStateOf(false) }
 
-    // 📂 Archivo temporal para foto tomada
-    val archivoFoto = remember {
-        File(context.cacheDir, "foto_perfil_${System.currentTimeMillis()}.jpg")
-    }
+    // Archivo persistente
+    val fotoDir = remember { File(context.filesDir, "profile_photos").apply { mkdirs() } }
+    val archivoFoto = remember { File(fotoDir, "profile_${System.currentTimeMillis()}.jpg") }
     val uriFoto = FileProvider.getUriForFile(
         context,
         "${context.packageName}.provider",
         archivoFoto
     )
 
-    // 🚀 Launcher para cámara
     val camaraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
+        ActivityResultContracts.TakePicture()
     ) { exito ->
-        if (exito) fotoPerfil = uriFoto
+        if (exito) {
+            fotoPerfil = uriFoto
+            usuarioViewModel.guardarFotoPerfil(uriFoto.toString())
+        }
     }
 
-    // 🚀 Launcher para galería
     val galeriaLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia()
+        ActivityResultContracts.PickVisualMedia()
     ) { uri ->
-        if (uri != null) fotoPerfil = uri
+        if (uri != null) {
+            fotoPerfil = uri
+            usuarioViewModel.guardarFotoPerfil(uri.toString())
+        }
     }
 
-    // 🚀 Permiso de cámara
     val permisoCamaraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
+        ActivityResultContracts.RequestPermission()
     ) { permisoConcedido ->
         if (permisoConcedido) camaraLauncher.launch(uriFoto)
         else Toast.makeText(context, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show()
@@ -114,7 +122,8 @@ fun ProfileScreen(
                     .fillMaxWidth(0.9f)
                     .padding(16.dp),
                 shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Column(
                     modifier = Modifier
@@ -130,7 +139,7 @@ fun ProfileScreen(
                         color = marron
                     )
 
-                    // 🖼️ Imagen o inicial del usuario
+                    // 🖼️ Imagen o inicial
                     Box(
                         modifier = Modifier
                             .size(130.dp)
@@ -164,7 +173,6 @@ fun ProfileScreen(
                         }
                     }
 
-                    // 📸 Botón para cambiar la foto
                     OutlinedButton(
                         onClick = { mostrarDialogo = true },
                         shape = RoundedCornerShape(12.dp),
@@ -177,11 +185,7 @@ fun ProfileScreen(
 
                     Divider(thickness = 1.dp, color = Color.LightGray)
 
-                    Text(
-                        "Nombre: $nombreUsuario",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+                    Text("Nombre: $nombreUsuario", fontSize = 18.sp, fontWeight = FontWeight.Medium)
                     Text("Correo: $correoUsuario", fontSize = 16.sp, color = Color.DarkGray)
 
                     OutlinedButton(
@@ -192,12 +196,10 @@ fun ProfileScreen(
                         Text("Mis pedidos", fontWeight = FontWeight.Bold)
                     }
 
-                    // 🚪 Cerrar sesión
                     Button(
                         onClick = {
                             scope.launch {
-                                val correoActual =
-                                    usuarioViewModel.usuarioCorreo.firstOrNull() ?: ""
+                                val correoActual = usuarioViewModel.usuarioCorreo.firstOrNull() ?: ""
                                 if (correoActual.isNotBlank())
                                     carritoViewModel.guardarCarritoUsuario(correoActual)
                                 carritoViewModel.vaciarCarrito()
@@ -207,24 +209,17 @@ fun ProfileScreen(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = marron),
                         shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth(0.7f)
-                            .height(50.dp)
+                        modifier = Modifier.fillMaxWidth(0.7f).height(50.dp)
                     ) {
                         Icon(Icons.Filled.ExitToApp, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "Cerrar sesión",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("Cerrar sesión", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
     }
 
-    // 📱 Diálogo para elegir entre cámara o galería
     if (mostrarDialogo) {
         AlertDialog(
             onDismissRequest = { mostrarDialogo = false },
@@ -247,11 +242,7 @@ fun ProfileScreen(
                     OutlinedButton(
                         onClick = {
                             mostrarDialogo = false
-                            galeriaLauncher.launch(
-                                PickVisualMediaRequest(
-                                    ActivityResultContracts.PickVisualMedia.ImageOnly
-                                )
-                            )
+                            galeriaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                         },
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()

@@ -3,10 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.pasteleria_app.pasteleria_app">
 
-    <!-- 🎥 Permiso para usar la cámara -->
+    <!-- 🎥 Permisos y características -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
-
 
     <application
         android:name=".PasteleriaApp"
@@ -32,7 +31,7 @@
             </intent-filter>
         </activity>
 
-        <!-- 📸 FileProvider para compartir la URI de la cámara -->
+        <!-- 📸 FileProvider para permitir URIs seguras (cámara/galería) -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

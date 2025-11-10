@@ -15,6 +15,7 @@ class UserPreferences(private val context: Context) {
     companion object {
         private val KEY_USER_NAME = stringPreferencesKey("user_name")
         private val KEY_USER_EMAIL = stringPreferencesKey("user_email")
+        private val KEY_USER_PHOTO = stringPreferencesKey("user_photo") // ✅ NUEVO
     }
 
     val userNameFlow: Flow<String?> = context.dataStore.data.map { prefs ->
@@ -25,6 +26,10 @@ class UserPreferences(private val context: Context) {
         prefs[KEY_USER_EMAIL]
     }
 
+    val userPhotoFlow: Flow<String?> = context.dataStore.data.map { prefs -> // ✅ NUEVO
+        prefs[KEY_USER_PHOTO]
+    }
+
     suspend fun saveUser(name: String, email: String) {
         context.dataStore.edit { prefs ->
             prefs[KEY_USER_NAME] = name
@@ -32,10 +37,23 @@ class UserPreferences(private val context: Context) {
         }
     }
 
+    suspend fun saveUserPhoto(uri: String) { // ✅ NUEVO
+        context.dataStore.edit { prefs ->
+            prefs[KEY_USER_PHOTO] = uri
+        }
+    }
+
+    suspend fun clearUserPhoto() { // ✅ NUEVO
+        context.dataStore.edit { prefs ->
+            prefs.remove(KEY_USER_PHOTO)
+        }
+    }
+
     suspend fun clearUser() {
         context.dataStore.edit { prefs ->
             prefs.remove(KEY_USER_NAME)
             prefs.remove(KEY_USER_EMAIL)
+            // ⚠️ No se borra la foto para mantenerla por usuario
         }
     }
 }

@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <cache-path name="images" path="." />
+    <!-- Permite acceso a las fotos persistentes de perfil -->
+    <files-path
+        name="profile_photos"
+        path="profile_photos/" />
+
+    <!-- Permite acceso a archivos temporales de la cámara -->
+    <cache-path
+        name="cache"
+        path="." />
 </paths>

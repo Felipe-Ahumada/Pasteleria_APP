@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pasteleria_app.pasteleria_app.data.local.entities.UsuarioEntity
 import com.pasteleria_app.pasteleria_app.domain.repository.UsuarioRepository
+import com.pasteleria_app.pasteleria_app.data.preferences.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.pasteleria_app.pasteleria_app.data.preferences.UserPreferences
 
 @HiltViewModel
 class UsuarioViewModel @Inject constructor(
@@ -15,8 +15,9 @@ class UsuarioViewModel @Inject constructor(
     private val prefs: UserPreferences
 ) : ViewModel() {
 
-    val usuarioActual = prefs.userNameFlow // 🧁 observable nombre
-    val usuarioCorreo = prefs.userEmailFlow // 📧 observable correo
+    val usuarioActual = prefs.userNameFlow
+    val usuarioCorreo = prefs.userEmailFlow
+    val usuarioFoto = prefs.userPhotoFlow // ✅ NUEVO
 
     suspend fun registrarUsuario(
         correo: String,
@@ -40,7 +41,7 @@ class UsuarioViewModel @Inject constructor(
     suspend fun validarUsuario(correo: String, contrasena: String): Boolean {
         val usuario = repository.obtenerUsuarioPorCorreo(correo)
         if (usuario != null && usuario.contrasena == contrasena) {
-            prefs.saveUser(usuario.nombre, usuario.correo) // ✅ guardamos sesión completa
+            prefs.saveUser(usuario.nombre, usuario.correo)
             return true
         }
         return false
@@ -50,7 +51,16 @@ class UsuarioViewModel @Inject constructor(
         return repository.obtenerUsuarioPorCorreo(correo)
     }
 
+    fun guardarFotoPerfil(uri: String) { // ✅ NUEVO
+        viewModelScope.launch {
+            prefs.saveUserPhoto(uri)
+        }
+    }
+
     fun cerrarSesion() {
-        viewModelScope.launch { prefs.clearUser() }
+        viewModelScope.launch {
+            prefs.clearUser()
+            // ❌ No borramos la foto, para mantenerla persistente
+        }
     }
 }
