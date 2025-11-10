@@ -22,8 +22,12 @@ class UsuarioViewModel @Inject constructor(
     suspend fun registrarUsuario(
         correo: String,
         contrasena: String,
-        nombre: String,
-        apellido: String
+        primerNombre: String,
+        segundoNombre: String?,
+        apellidoPaterno: String,
+        apellidoMaterno: String?,
+        rut: String?,
+        direccion: String?
     ): Boolean {
         val existente = repository.obtenerUsuarioPorCorreo(correo)
         if (existente != null) return false
@@ -31,8 +35,12 @@ class UsuarioViewModel @Inject constructor(
         val nuevo = UsuarioEntity(
             correo = correo,
             contrasena = contrasena,
-            nombre = nombre,
-            apellido = apellido
+            primerNombre = primerNombre,
+            segundoNombre = segundoNombre,
+            apellidoPaterno = apellidoPaterno,
+            apellidoMaterno = apellidoMaterno,
+            rut = rut,
+            direccion = direccion
         )
         repository.registrarUsuario(nuevo)
         return true
@@ -41,7 +49,7 @@ class UsuarioViewModel @Inject constructor(
     suspend fun validarUsuario(correo: String, contrasena: String): Boolean {
         val usuario = repository.obtenerUsuarioPorCorreo(correo)
         if (usuario != null && usuario.contrasena == contrasena) {
-            prefs.saveUser(usuario.nombre, usuario.correo)
+            prefs.saveUser(usuario.primerNombre, usuario.correo)
             return true
         }
         return false

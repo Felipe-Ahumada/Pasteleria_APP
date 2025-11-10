@@ -136,6 +136,7 @@ fun CarritoScreen(
 
                         Button(
                             onClick = { onOpenEnvio() },
+                            enabled = productos.isNotEmpty(), // <-- AÑADIDO
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC49A6C)),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier

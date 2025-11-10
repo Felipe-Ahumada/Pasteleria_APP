@@ -11,7 +11,7 @@ import com.pasteleria_app.pasteleria_app.data.local.entities.CarritoUsuarioEntit
 
 @Database(
     entities = [ProductoEntity::class, UsuarioEntity::class, CarritoUsuarioEntity::class],
-    version = 4,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

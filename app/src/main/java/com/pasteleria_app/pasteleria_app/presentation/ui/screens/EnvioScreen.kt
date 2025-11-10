@@ -37,12 +37,12 @@ fun EnvioScreen(
     val marron = Color(0xFF3E2E20)
     val blanco = Color.White
 
-    // 🧁 Datos usuario
-    val nombre by usuarioViewModel.usuarioActual.collectAsState(initial = "")
+    // 🧁 Datos usuario desde DataStore
     val correo by usuarioViewModel.usuarioCorreo.collectAsState(initial = "")
 
-    var run by remember { mutableStateOf("") }
-    var nombres by remember { mutableStateOf(nombre ?: "") }
+    // 🧩 Campos
+    var runUsuario by remember { mutableStateOf("") }
+    var nombres by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
     var region by remember { mutableStateOf("Biobío") }
@@ -52,7 +52,70 @@ fun EnvioScreen(
     var metodoPago by remember { mutableStateOf("Webpay") }
 
     var mostrarCalendario by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState()
+
+    // ✅ Variable de validación del formulario
+    val isFormValid = remember(runUsuario, nombres, apellidos, direccion, comuna, fechaEntrega, tipoEntrega) {
+        runUsuario.isNotBlank() &&
+                nombres.isNotBlank() &&
+                apellidos.isNotBlank() &&
+                direccion.isNotBlank() &&
+                comuna.isNotBlank() &&
+                fechaEntrega.isNotBlank() &&
+                tipoEntrega.isNotBlank()
+    }
+
+    // --- INICIO: LÓGICA DE FECHA MODIFICADA ---
+
+    // ✅ 1. Define el inicio de "hoy" (medianoche) para la validación
+    val todayMillis = remember {
+        Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+    }
+
+    // ✅ 2. Modifica el DatePickerState para deshabilitar fechas pasadas
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = todayMillis, // Se seleccionará "hoy" por defecto
+        yearRange = 2024..2030,
+        selectableDates = object : SelectableDates {
+            // Solo fechas desde hoy (medianoche) en adelante son seleccionables
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return utcTimeMillis >= todayMillis
+            }
+        }
+    )
+
+    // ✅ 3. Actualiza tu función de validación para ser consistente
+    fun isFechaValida(millis: Long?): Boolean {
+        if (millis == null) return false
+        // El DatePickerState ya no debería permitir fechas no válidas,
+        // pero mantenemos esto por seguridad.
+        return millis >= todayMillis
+    }
+
+    // --- FIN: LÓGICA DE FECHA MODIFICADA ---
+
+
+    // ✅ Autocompletar usuario logueado
+    LaunchedEffect(correo) {
+        val correoActual = correo ?: ""
+        if (correoActual.isNotBlank()) {
+            val usuario = usuarioViewModel.obtenerUsuarioPorCorreo(correoActual)
+            usuario?.let { u ->
+                runUsuario = u.rut.orEmpty()
+                nombres = listOfNotNull(u.primerNombre, u.segundoNombre?.takeIf { it.isNotBlank() })
+                    .joinToString(" ")
+                apellidos = listOfNotNull(u.apellidoPaterno, u.apellidoMaterno?.takeIf { it.isNotBlank() })
+                    .joinToString(" ")
+                direccion = u.direccion.orEmpty()
+            }
+        }
+    }
+
+    val usuarioLogueado = !correo.isNullOrBlank()
 
     PasteleriaScaffold(
         title = "Procesamiento de Pedido",
@@ -67,14 +130,12 @@ fun EnvioScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-
             // 🧾 Resumen del carrito
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = blanco),
                     shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(3.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    elevation = CardDefaults.cardElevation(3.dp)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
@@ -108,8 +169,7 @@ fun EnvioScreen(
                 Card(
                     colors = CardDefaults.cardColors(containerColor = blanco),
                     shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(3.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    elevation = CardDefaults.cardElevation(3.dp)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
@@ -122,23 +182,22 @@ fun EnvioScreen(
                             color = marron
                         )
 
-                        campoEnvio("RUN", "19011022K", run) { run = it }
-                        campoEnvio("Correo", "usuario@correo.com", correo ?: "") {}
-                        campoEnvio("Nombres", "Ej: María", nombres ?: "") { nombres = it }
-                        campoEnvio("Apellidos", "Ej: González Pérez", apellidos) { apellidos = it }
-                        campoEnvio("Dirección", "Ej: Calle 123, Concepción", direccion) { direccion = it }
+                        campoEnvio("RUN", "19011022K", runUsuario, { runUsuario = it }, usuarioLogueado)
+                        campoEnvio("Correo", "usuario@correo.com", correo ?: "", {}, true)
+                        campoEnvio("Nombres", "Ej: María", nombres, { nombres = it }, usuarioLogueado)
+                        campoEnvio("Apellidos", "Ej: González Pérez", apellidos, { apellidos = it }, usuarioLogueado)
+                        campoEnvio("Dirección", "Ej: Calle 123, Concepción", direccion, { direccion = it }, usuarioLogueado)
 
                         OutlinedTextField(
                             value = region,
                             onValueChange = {},
                             label = { Text("Región") },
-                            singleLine = true,
                             readOnly = true,
+                            singleLine = true,
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        // 📍 Comuna
                         val comunas = listOf("Concepción", "Talcahuano", "Hualpén")
                         var expandirComuna by remember { mutableStateOf(false) }
 
@@ -152,7 +211,9 @@ fun EnvioScreen(
                                 label = { Text("Comuna") },
                                 readOnly = true,
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandirComuna) },
-                                modifier = Modifier.menuAnchor().fillMaxWidth()
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth()
                             )
                             ExposedDropdownMenu(
                                 expanded = expandirComuna,
@@ -180,10 +241,7 @@ fun EnvioScreen(
                             modifier = Modifier.fillMaxWidth(),
                             trailingIcon = {
                                 IconButton(onClick = { mostrarCalendario = true }) {
-                                    Icon(
-                                        imageVector = Icons.Default.CalendarMonth, // ✅ corregido
-                                        contentDescription = "Elegir fecha"
-                                    )
+                                    Icon(Icons.Default.CalendarMonth, contentDescription = "Elegir fecha")
                                 }
                             }
                         )
@@ -202,7 +260,9 @@ fun EnvioScreen(
                                 label = { Text("Tipo de entrega") },
                                 readOnly = true,
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandirTipo) },
-                                modifier = Modifier.menuAnchor().fillMaxWidth()
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth()
                             )
                             ExposedDropdownMenu(
                                 expanded = expandirTipo,
@@ -220,12 +280,10 @@ fun EnvioScreen(
                             }
                         }
 
-                        // 💳 Método de pago
                         OutlinedTextField(
                             value = metodoPago,
                             onValueChange = {},
                             label = { Text("Método de Pago") },
-                            singleLine = true,
                             readOnly = true,
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
@@ -233,7 +291,6 @@ fun EnvioScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Botones
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
@@ -247,6 +304,7 @@ fun EnvioScreen(
                             Spacer(Modifier.width(8.dp))
                             Button(
                                 onClick = { onConfirmarPago() },
+                                enabled = isFormValid, // <-- Botón deshabilitado
                                 colors = ButtonDefaults.buttonColors(containerColor = marron),
                                 modifier = Modifier.weight(1f)
                             ) {
@@ -259,33 +317,51 @@ fun EnvioScreen(
         }
     }
 
-    // 📆 Selector de fecha (retrocompatible)
+    // 📆 Selector de fecha con validación
     if (mostrarCalendario) {
         DatePickerDialog(
             onDismissRequest = { mostrarCalendario = false },
             confirmButton = {
                 TextButton(onClick = {
-                    mostrarCalendario = false
-                    datePickerState.selectedDateMillis?.let { millis ->
-                        val fecha = Date(millis)
+                    val millis = datePickerState.selectedDateMillis
+                    // La validación se asegura de que solo se acepte si es válida
+                    if (isFechaValida(millis)) {
+                        mostrarCalendario = false
+                        val fecha = Date(millis!!)
                         val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                         fechaEntrega = formato.format(fecha)
                     }
                 }) {
                     Text("Aceptar")
                 }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarCalendario = false }) {
+                    Text("Cancelar")
+                }
             }
         ) {
-            DatePicker(state = datePickerState)
+            DatePicker(
+                state = datePickerState,
+                showModeToggle = true,
+                colors = DatePickerDefaults.colors(
+                    containerColor = Color(0xFFFDF8F4),            // fondo suave
+                    selectedDayContainerColor = Color(0xFF6D4C41), // marrón (día seleccionado)
+                    selectedDayContentColor = Color.White,
+                    disabledDayContentColor = Color(0xFFBDBDBD),   // días inactivos → grises
+                    todayContentColor = Color(0xFF6D4C41),
+                    weekdayContentColor = Color(0xFF5D4037),
+                    subheadContentColor = Color(0xFF5D4037)
+                )
+            )
         }
     }
 }
 
-// 🧁 Producto en resumen
 @Composable
 fun ProductoResumenItem(producto: Producto) {
     Row(
-        modifier = Modifier
+        Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -296,17 +372,30 @@ fun ProductoResumenItem(producto: Producto) {
     }
 }
 
-// 🧱 Campo reutilizable
 @Composable
-fun campoEnvio(label: String, placeholder: String, value: String, onValueChange: (String) -> Unit) {
+fun campoEnvio(
+    label: String,
+    placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    readOnly: Boolean = false
+) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         placeholder = { Text(placeholder) },
         singleLine = true,
+        readOnly = readOnly,
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(if (readOnly) Color(0xFFF8F8F8) else Color.Transparent),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = Color(0xFF3E2E20),
+            focusedBorderColor = if (readOnly) Color.LightGray else Color(0xFF3E2E20),
+            unfocusedBorderColor = if (readOnly) Color.LightGray else Color.Gray
+        )
     )
 }
 

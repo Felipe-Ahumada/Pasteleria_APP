@@ -8,6 +8,10 @@ data class UsuarioEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val correo: String,
     val contrasena: String,
-    val nombre: String,
-    val apellido: String
+    val primerNombre: String,
+    val segundoNombre: String? = null,
+    val apellidoPaterno: String,
+    val apellidoMaterno: String? = null,
+    val rut: String? = null,
+    val direccion: String? = null
 )

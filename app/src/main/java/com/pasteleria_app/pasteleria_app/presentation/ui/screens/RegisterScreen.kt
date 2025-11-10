@@ -330,9 +330,14 @@ fun RegisterScreen(
                                     val exito = usuarioViewModel.registrarUsuario(
                                         correo = correo,
                                         contrasena = contrasena,
-                                        nombre = "$primerNombre $apellidoPaterno",
-                                        apellido = apellidoMaterno
+                                        primerNombre = primerNombre,
+                                        segundoNombre = segundoNombre.takeIf { it.isNotBlank() },
+                                        apellidoPaterno = apellidoPaterno,
+                                        apellidoMaterno = apellidoMaterno.takeIf { it.isNotBlank() },
+                                        rut = run.takeIf { it.isNotBlank() },
+                                        direccion = direccion.takeIf { it.isNotBlank() }
                                     )
+
 
                                     if (exito) {
                                         snackbarHostState.showSnackbar("Cuenta creada con éxito 🎉")
