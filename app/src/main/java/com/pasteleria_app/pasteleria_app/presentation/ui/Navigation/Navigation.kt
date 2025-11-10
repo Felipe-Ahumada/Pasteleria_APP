@@ -21,6 +21,8 @@ sealed class Screen(val route: String) {
     data object ResetPassword : Screen("reset_password")
 
     data object Profile : Screen("profile")
+
+    data object Envio : Screen("envio")
 }
 
 @Composable
@@ -105,6 +107,14 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
                 onOpenLogin = { navController.navigate(Screen.Login.route) },
                 onOpenPerfil = { navController.navigate(Screen.Profile.route) },
+                onOpenEnvio = { navController.navigate(Screen.Envio.route) },
+                carritoViewModel = carritoViewModel
+            )
+        }
+        composable(Screen.Envio.route) {
+            EnvioScreen(
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onConfirmarPago = { /* Aquí más adelante puedes ir a una pantalla de confirmación o pago */ },
                 carritoViewModel = carritoViewModel
             )
         }

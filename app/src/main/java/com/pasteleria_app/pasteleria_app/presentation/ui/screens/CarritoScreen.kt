@@ -31,6 +31,7 @@ fun CarritoScreen(
     onOpenCarrito: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
+    onOpenEnvio: () -> Unit = {},
     carritoViewModel: CarritoViewModel
 ) {
     val productos by carritoViewModel.productos.collectAsState()
@@ -134,14 +135,18 @@ fun CarritoScreen(
                         }
 
                         Button(
-                            onClick = { /* TODO: Checkout */ },
+                            onClick = { onOpenEnvio() },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC49A6C)),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp)
                         ) {
-                            Text("Definir envío y continuar", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text(
+                                "Definir envío y continuar",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
