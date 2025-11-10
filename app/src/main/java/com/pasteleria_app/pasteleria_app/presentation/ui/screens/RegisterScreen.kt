@@ -34,8 +34,10 @@ fun RegisterScreen(
     carritoViewModel: CarritoViewModel? = null,
     usuarioViewModel: UsuarioViewModel = hiltViewModel()
 ) {
-    val crema = MaterialTheme.colorScheme.background
-    val marron = MaterialTheme.colorScheme.primary
+    val crema = Color(0xFFFBF3E9)
+    val marron = Color(0xFF3E2E20)
+    val blanco = Color.White
+
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -81,264 +83,285 @@ fun RegisterScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                    .padding(horizontal = 16.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Crear cuenta",
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = marron,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                // Datos personales
-                ValidatedField(
-                    label = "Primer nombre *",
-                    placeholder = "Ej: María",
-                    value = primerNombre,
-                    onValueChange = { if (it.length <= 25) primerNombre = it },
-                    showError = primerNombre.isBlank(),
-                    errorText = "Campo obligatorio"
-                )
-
-                ValidatedField(
-                    label = "Segundo nombre (opcional)",
-                    placeholder = "Ej: Luisa",
-                    value = segundoNombre,
-                    onValueChange = { if (it.length <= 25) segundoNombre = it },
-                    showError = false
-                )
-
-                ValidatedField(
-                    label = "Apellido paterno *",
-                    placeholder = "Ej: Pérez",
-                    value = apellidoPaterno,
-                    onValueChange = { if (it.length <= 25) apellidoPaterno = it },
-                    showError = apellidoPaterno.isBlank(),
-                    errorText = "Campo obligatorio"
-                )
-
-                ValidatedField(
-                    label = "Apellido materno (opcional)",
-                    placeholder = "Ej: González",
-                    value = apellidoMaterno,
-                    onValueChange = { if (it.length <= 25) apellidoMaterno = it },
-                    showError = false
-                )
-
-                ValidatedField(
-                    label = "RUN *",
-                    placeholder = "Ej: 19011022K",
-                    value = run,
-                    onValueChange = { if (it.length <= 10) run = it },
-                    showError = run.isBlank(),
-                    errorText = "Campo obligatorio"
-                )
-
-                // 🎂 Fecha de nacimiento con autocompletado de slashes
-                ValidatedField(
-                    label = "Fecha de nacimiento (opcional)",
-                    placeholder = "dd/mm/aaaa",
-                    value = fechaNacimiento,
-                    onValueChange = {
-                        // Solo números y máximo 8 dígitos sin slashes
-                        val cleaned = it.filter { c -> c.isDigit() }.take(8)
-                        fechaNacimiento = when {
-                            cleaned.length >= 5 ->
-                                "${cleaned.take(2)}/${cleaned.drop(2).take(2)}/${cleaned.drop(4)}"
-                            cleaned.length >= 3 ->
-                                "${cleaned.take(2)}/${cleaned.drop(2)}"
-                            else -> cleaned
-                        }
-                    },
-                    showError = fechaNacimiento.isNotBlank() &&
-                            !fechaNacimiento.matches(Regex("^\\d{2}/\\d{2}/\\d{4}\$")),
-                    errorText = "Formato inválido (dd/mm/aaaa)"
-                )
-
-                campo("Teléfono (opcional)", "+56 9 1234 5678", telefono) { telefono = it }
-
-                ValidatedField(
-                    label = "Correo electrónico *",
-                    placeholder = "usuario@dominio.com",
-                    value = correo,
-                    onValueChange = { correo = it },
-                    showError = correo.isBlank(),
-                    errorText = "Campo obligatorio"
-                )
-
-                ValidatedField(
-                    label = "Dirección *",
-                    placeholder = "Calle 123",
-                    value = direccion,
-                    onValueChange = { direccion = it },
-                    showError = direccion.isBlank(),
-                    errorText = "Campo obligatorio"
-                )
-
-                // Región
-                ExposedDropdownMenuBox(
-                    expanded = expandRegion,
-                    onExpandedChange = { expandRegion = !expandRegion }
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = blanco),
+                    shape = RoundedCornerShape(20.dp),
+                    elevation = CardDefaults.cardElevation(3.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    OutlinedTextField(
-                        value = regionSeleccionada,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Región *") },
-                        isError = regionSeleccionada.isBlank(),
-                        supportingText = {
-                            if (regionSeleccionada.isBlank())
-                                Text("Campo obligatorio", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
-                        },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandRegion) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expandRegion,
-                        onDismissRequest = { expandRegion = false }
+                    Column(
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        regiones.forEach { region ->
-                            DropdownMenuItem(
-                                text = { Text(region) },
-                                onClick = {
-                                    regionSeleccionada = region
-                                    expandRegion = false
+                        Text(
+                            text = "Crear cuenta",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = marron,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+
+                        // Datos personales
+                        ValidatedField(
+                            label = "Primer nombre *",
+                            placeholder = "Ej: María",
+                            value = primerNombre,
+                            onValueChange = { if (it.length <= 25) primerNombre = it },
+                            showError = primerNombre.isBlank(),
+                            errorText = "Campo obligatorio"
+                        )
+
+                        ValidatedField(
+                            label = "Segundo nombre (opcional)",
+                            placeholder = "Ej: Luisa",
+                            value = segundoNombre,
+                            onValueChange = { if (it.length <= 25) segundoNombre = it },
+                            showError = false
+                        )
+
+                        ValidatedField(
+                            label = "Apellido paterno *",
+                            placeholder = "Ej: Pérez",
+                            value = apellidoPaterno,
+                            onValueChange = { if (it.length <= 25) apellidoPaterno = it },
+                            showError = apellidoPaterno.isBlank(),
+                            errorText = "Campo obligatorio"
+                        )
+
+                        ValidatedField(
+                            label = "Apellido materno (opcional)",
+                            placeholder = "Ej: González",
+                            value = apellidoMaterno,
+                            onValueChange = { if (it.length <= 25) apellidoMaterno = it },
+                            showError = false
+                        )
+
+                        ValidatedField(
+                            label = "RUN *",
+                            placeholder = "Ej: 19011022K",
+                            value = run,
+                            onValueChange = { if (it.length <= 10) run = it },
+                            showError = run.isBlank(),
+                            errorText = "Campo obligatorio"
+                        )
+
+                        // 🎂 Fecha con auto-slash
+                        ValidatedField(
+                            label = "Fecha de nacimiento (opcional)",
+                            placeholder = "dd/mm/aaaa",
+                            value = fechaNacimiento,
+                            onValueChange = {
+                                val cleaned = it.filter { c -> c.isDigit() }.take(8)
+                                fechaNacimiento = when {
+                                    cleaned.length >= 5 ->
+                                        "${cleaned.take(2)}/${cleaned.drop(2).take(2)}/${cleaned.drop(4)}"
+                                    cleaned.length >= 3 ->
+                                        "${cleaned.take(2)}/${cleaned.drop(2)}"
+                                    else -> cleaned
                                 }
+                            },
+                            showError = fechaNacimiento.isNotBlank() &&
+                                    !fechaNacimiento.matches(Regex("^\\d{2}/\\d{2}/\\d{4}\$")),
+                            errorText = "Formato inválido (dd/mm/aaaa)"
+                        )
+
+                        campoBlanco("Teléfono (opcional)", "+56 9 1234 5678", telefono) { telefono = it }
+
+                        ValidatedField(
+                            label = "Correo electrónico *",
+                            placeholder = "usuario@dominio.com",
+                            value = correo,
+                            onValueChange = { correo = it },
+                            showError = correo.isBlank(),
+                            errorText = "Campo obligatorio"
+                        )
+
+                        ValidatedField(
+                            label = "Dirección *",
+                            placeholder = "Calle 123",
+                            value = direccion,
+                            onValueChange = { direccion = it },
+                            showError = direccion.isBlank(),
+                            errorText = "Campo obligatorio"
+                        )
+
+                        // Región
+                        ExposedDropdownMenuBox(
+                            expanded = expandRegion,
+                            onExpandedChange = { expandRegion = !expandRegion }
+                        ) {
+                            OutlinedTextField(
+                                value = regionSeleccionada,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Región *") },
+                                isError = regionSeleccionada.isBlank(),
+                                supportingText = {
+                                    if (regionSeleccionada.isBlank())
+                                        Text(
+                                            "Campo obligatorio",
+                                            color = MaterialTheme.colorScheme.error,
+                                            fontSize = 12.sp
+                                        )
+                                },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandRegion) },
+                                modifier = Modifier.menuAnchor().fillMaxWidth()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandRegion,
+                                onDismissRequest = { expandRegion = false }
+                            ) {
+                                regiones.forEach { region ->
+                                    DropdownMenuItem(
+                                        text = { Text(region) },
+                                        onClick = {
+                                            regionSeleccionada = region
+                                            expandRegion = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Comuna
+                        ExposedDropdownMenuBox(
+                            expanded = expandComuna,
+                            onExpandedChange = { expandComuna = !expandComuna }
+                        ) {
+                            OutlinedTextField(
+                                value = comunaSeleccionada,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Comuna *") },
+                                isError = comunaSeleccionada.isBlank(),
+                                supportingText = {
+                                    if (comunaSeleccionada.isBlank())
+                                        Text(
+                                            "Campo obligatorio",
+                                            color = MaterialTheme.colorScheme.error,
+                                            fontSize = 12.sp
+                                        )
+                                },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandComuna) },
+                                modifier = Modifier.menuAnchor().fillMaxWidth()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandComuna,
+                                onDismissRequest = { expandComuna = false }
+                            ) {
+                                comunas.forEach { comuna ->
+                                    DropdownMenuItem(
+                                        text = { Text(comuna) },
+                                        onClick = {
+                                            comunaSeleccionada = comuna
+                                            expandComuna = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Contraseñas
+                        ValidatedField(
+                            label = "Contraseña *",
+                            placeholder = "Entre 4 y 10 caracteres",
+                            value = contrasena,
+                            onValueChange = { if (it.length <= 10) contrasena = it },
+                            showError = contrasena.isBlank(),
+                            errorText = "Campo obligatorio",
+                            isPassword = true
+                        )
+
+                        ValidatedField(
+                            label = "Confirmar contraseña *",
+                            placeholder = "Repite tu contraseña",
+                            value = confirmarContrasena,
+                            onValueChange = { if (it.length <= 10) confirmarContrasena = it },
+                            showError = confirmarContrasena != contrasena && confirmarContrasena.isNotBlank(),
+                            errorText = "Las contraseñas no coinciden",
+                            isPassword = true
+                        )
+
+                        campoBlanco(
+                            "Código de bienvenida (opcional)",
+                            "Ej: MILSABORES2025",
+                            codigoBienvenida
+                        ) { codigoBienvenida = it }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                        ) {
+                            Checkbox(
+                                checked = aceptaTerminos,
+                                onCheckedChange = { aceptaTerminos = it },
+                                colors = CheckboxDefaults.colors(checkedColor = marron)
+                            )
+                            Text(
+                                text = "Acepto los términos y condiciones",
+                                color = marron,
+                                modifier = Modifier.clickable { aceptaTerminos = !aceptaTerminos }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    val errores = validarCampos(
+                                        primerNombre, apellidoPaterno, run, correo,
+                                        direccion, regionSeleccionada, comunaSeleccionada,
+                                        contrasena, confirmarContrasena, aceptaTerminos, fechaNacimiento
+                                    )
+
+                                    if (errores.isNotEmpty()) {
+                                        snackbarHostState.showSnackbar(errores.first())
+                                        return@launch
+                                    }
+
+                                    val exito = usuarioViewModel.registrarUsuario(
+                                        correo = correo,
+                                        contrasena = contrasena,
+                                        nombre = "$primerNombre $apellidoPaterno",
+                                        apellido = apellidoMaterno
+                                    )
+
+                                    if (exito) {
+                                        snackbarHostState.showSnackbar("Cuenta creada con éxito 🎉")
+                                        onOpenLogin()
+                                    } else {
+                                        snackbarHostState.showSnackbar("Este correo ya está registrado ⚠️")
+                                    }
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = marron),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth().height(50.dp)
+                        ) {
+                            Text("Crear cuenta", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                            Text("¿Ya tienes cuenta?", color = Color.DarkGray)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Inicia sesión",
+                                color = marron,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable { onOpenLogin() }
                             )
                         }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Comuna
-                ExposedDropdownMenuBox(
-                    expanded = expandComuna,
-                    onExpandedChange = { expandComuna = !expandComuna }
-                ) {
-                    OutlinedTextField(
-                        value = comunaSeleccionada,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Comuna *") },
-                        isError = comunaSeleccionada.isBlank(),
-                        supportingText = {
-                            if (comunaSeleccionada.isBlank())
-                                Text("Campo obligatorio", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
-                        },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandComuna) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expandComuna,
-                        onDismissRequest = { expandComuna = false }
-                    ) {
-                        comunas.forEach { comuna ->
-                            DropdownMenuItem(
-                                text = { Text(comuna) },
-                                onClick = {
-                                    comunaSeleccionada = comuna
-                                    expandComuna = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Contraseñas
-                ValidatedField(
-                    label = "Contraseña *",
-                    placeholder = "Entre 4 y 10 caracteres",
-                    value = contrasena,
-                    onValueChange = { if (it.length <= 10) contrasena = it },
-                    showError = contrasena.isBlank(),
-                    errorText = "Campo obligatorio",
-                    isPassword = true
-                )
-
-                ValidatedField(
-                    label = "Confirmar contraseña *",
-                    placeholder = "Repite tu contraseña",
-                    value = confirmarContrasena,
-                    onValueChange = { if (it.length <= 10) confirmarContrasena = it },
-                    showError = confirmarContrasena != contrasena && confirmarContrasena.isNotBlank(),
-                    errorText = "Las contraseñas no coinciden",
-                    isPassword = true
-                )
-
-                campo("Código de bienvenida (opcional)", "Ej: MILSABORES2025", codigoBienvenida) {
-                    codigoBienvenida = it
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                ) {
-                    Checkbox(
-                        checked = aceptaTerminos,
-                        onCheckedChange = { aceptaTerminos = it },
-                        colors = CheckboxDefaults.colors(checkedColor = marron)
-                    )
-                    Text(
-                        text = "Acepto los términos y condiciones",
-                        color = marron,
-                        modifier = Modifier.clickable { aceptaTerminos = !aceptaTerminos }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = {
-                        scope.launch {
-                            val errores = validarCampos(
-                                primerNombre, apellidoPaterno, run, correo,
-                                direccion, regionSeleccionada, comunaSeleccionada,
-                                contrasena, confirmarContrasena, aceptaTerminos, fechaNacimiento
-                            )
-
-                            if (errores.isNotEmpty()) {
-                                snackbarHostState.showSnackbar(errores.first())
-                                return@launch
-                            }
-
-                            val exito = usuarioViewModel.registrarUsuario(
-                                correo = correo,
-                                contrasena = contrasena,
-                                nombre = "$primerNombre $apellidoPaterno",
-                                apellido = apellidoMaterno
-                            )
-
-                            if (exito) {
-                                snackbarHostState.showSnackbar("Cuenta creada con éxito 🎉")
-                                onOpenLogin()
-                            } else {
-                                snackbarHostState.showSnackbar("Este correo ya está registrado ⚠️")
-                            }
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = marron),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth().height(50.dp)
-                ) {
-                    Text("Crear cuenta", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                    Text("¿Ya tienes cuenta?", color = Color.DarkGray)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Inicia sesión",
-                        color = marron,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable { onOpenLogin() }
-                    )
                 }
             }
 
@@ -371,11 +394,7 @@ fun ValidatedField(
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         supportingText = {
             if (showError && !errorText.isNullOrEmpty()) {
-                Text(
-                    text = errorText,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 12.sp
-                )
+                Text(text = errorText, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
             }
         },
         shape = RoundedCornerShape(12.dp),
@@ -384,7 +403,7 @@ fun ValidatedField(
 }
 
 @Composable
-fun campo(
+fun campoBlanco(
     label: String,
     placeholder: String,
     value: String,
@@ -401,6 +420,7 @@ fun campo(
     )
 }
 
+/* ✅ VALIDACIONES (misma lógica que tenías) */
 fun validarCampos(
     primerNombre: String,
     apellidoPaterno: String,
