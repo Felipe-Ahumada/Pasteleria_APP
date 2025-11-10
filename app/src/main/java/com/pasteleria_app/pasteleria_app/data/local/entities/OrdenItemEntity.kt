@@ -17,5 +17,6 @@ data class OrdenItemEntity(
     val nombreProducto: String,
     val cantidad: Int,
     val precioUnitario: Int,
-    val subtotal: Int
+    val subtotal: Int,
+    val mensaje: String? = null // <-- AÑADIDO
 )

@@ -10,16 +10,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-// Añade @Inject constructor si Hilt lo maneja
 class OrdenRepositoryImpl @Inject constructor(private val dao: OrdenDao) : OrdenRepository {
 
-    // ---- MODIFICADO ----
     override suspend fun crearOrden(orden: Orden, usuarioId: String) {
-        val ordenEntity = orden.toEntity(usuarioId) // Pasamos el ID aquí
+        val ordenEntity = orden.toEntity(usuarioId)
         val itemsEntity = orden.items.map { it.toEntity(orden.id) }
         dao.insertarOrdenCompleta(ordenEntity, itemsEntity)
     }
-    // ----
 
     override fun getOrdenes(usuarioId: String): Flow<List<Orden>> {
         return dao.getOrdenesPorUsuario(usuarioId).map { list ->
@@ -34,11 +31,10 @@ class OrdenRepositoryImpl @Inject constructor(private val dao: OrdenDao) : Orden
 
 // Mappers
 
-// ---- MODIFICADO ----
 fun Orden.toEntity(usuarioId: String): OrdenEntity {
     return OrdenEntity(
         id = id,
-        usuarioId = usuarioId, // Se asigna aquí
+        usuarioId = usuarioId,
         trackingId = trackingId,
         fechaCreacion = fechaCreacion,
         estado = estado,
@@ -49,7 +45,6 @@ fun Orden.toEntity(usuarioId: String): OrdenEntity {
         fechaPreferida = fechaPreferida
     )
 }
-// ----
 
 fun OrdenItem.toEntity(ordenId: String): OrdenItemEntity {
     return OrdenItemEntity(
@@ -57,7 +52,8 @@ fun OrdenItem.toEntity(ordenId: String): OrdenItemEntity {
         nombreProducto = nombreProducto,
         cantidad = cantidad,
         precioUnitario = precioUnitario,
-        subtotal = subtotal
+        subtotal = subtotal,
+        mensaje = mensaje // <-- AÑADIDO
     )
 }
 
@@ -81,6 +77,7 @@ fun OrdenItemEntity.toDomain(): OrdenItem {
         nombreProducto = nombreProducto,
         cantidad = cantidad,
         precioUnitario = precioUnitario,
-        subtotal = subtotal
+        subtotal = subtotal,
+        mensaje = mensaje // <-- AÑADIDO
     )
 }

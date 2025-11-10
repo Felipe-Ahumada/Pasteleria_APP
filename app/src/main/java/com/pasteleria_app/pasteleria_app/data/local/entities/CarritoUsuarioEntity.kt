@@ -11,5 +11,6 @@ data class CarritoUsuarioEntity(
     val nombre: String,
     val precio: Int,
     val cantidad: Int,
-    val imagen: Int
+    val imagen: Int,
+    val mensaje: String? = null // <-- AÑADIDO
 )

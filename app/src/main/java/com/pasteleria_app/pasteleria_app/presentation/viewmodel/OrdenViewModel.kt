@@ -28,7 +28,6 @@ class OrdenViewModel @Inject constructor(
     private val _ordenSeleccionada = MutableStateFlow<Orden?>(null)
     val ordenSeleccionada = _ordenSeleccionada.asStateFlow()
 
-    // Carga el historial de órdenes del usuario logueado
     fun cargarOrdenes() {
         viewModelScope.launch {
             val correo = userPreferences.userEmailFlow.first() ?: return@launch
@@ -38,7 +37,6 @@ class OrdenViewModel @Inject constructor(
         }
     }
 
-    // Carga una orden específica para la pantalla de detalle
     fun cargarOrdenPorId(ordenId: String) {
         viewModelScope.launch {
             ordenRepository.getOrden(ordenId).collect {
@@ -47,41 +45,37 @@ class OrdenViewModel @Inject constructor(
         }
     }
 
-    // Esta es la función que llamas desde EnvioScreen
-    // ---- MODIFICADO: Ahora devuelve un String (el ID del pedido) ----
     suspend fun crearOrden(
         productos: List<Producto>,
         total: Int,
         direccion: String,
         comuna: String,
-        fechaEntrega: String, // Formato "dd/MM/yyyy"
+        fechaEntrega: String,
         tipoEntrega: String
-    ): String { // <-- 1. CAMBIO EN LA FIRMA
+    ): String {
 
-        val correo = userPreferences.userEmailFlow.first() ?: return "" // <-- 2. CAMBIO EN EL RETURN TEMPRANO
-
-        // 1. Generar IDs únicos (simulados)
+        val correo = userPreferences.userEmailFlow.first() ?: return ""
         val pedidoId = "PED-" + (100000..999999).random().toString()
         val trackingId = "ENV-" + (100000..999999).random().toString()
 
-        // 2. Mapear productos del carrito a OrdenItems
+        // ---- MODIFICADO AQUÍ ----
         val items = productos.map {
             OrdenItem(
                 nombreProducto = it.nombre,
                 cantidad = it.cantidad,
                 precioUnitario = it.precio,
-                subtotal = it.precio * it.cantidad
+                subtotal = it.precio * it.cantidad,
+                mensaje = it.mensaje // <-- AÑADIDO: Se pasa el mensaje
             )
         }
+        // -------------------------
 
-        // 3. Crear el objeto Orden
         val direccionFinal = if (tipoEntrega == "Retiro en tienda") "Retiro en tienda" else direccion
-
         val nuevaOrden = Orden(
             id = pedidoId,
             trackingId = trackingId,
             fechaCreacion = Date().time,
-            estado = "Preparación", // Estado inicial
+            estado = "Preparación",
             total = total,
             tipoEntrega = tipoEntrega,
             direccionEntrega = direccionFinal,
@@ -90,9 +84,8 @@ class OrdenViewModel @Inject constructor(
             items = items
         )
 
-        // 4. Guardar en el repositorio
         ordenRepository.crearOrden(nuevaOrden, correo)
 
-        return pedidoId // <-- 3. DEVUELVE EL ID GENERADO
+        return pedidoId
     }
 }

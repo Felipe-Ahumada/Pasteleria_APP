@@ -11,14 +11,16 @@ data class ProductoEntity(
     val nombre: String,
     val precio: Int,
     val imagen: Int,
-    val cantidad: Int
+    var cantidad: Int, // <-- MODIFICADO a 'var'
+    var mensaje: String? = null // <-- AÑADIDO
 ) {
     fun toDomain(): Producto = Producto(
         id = id,
         nombre = nombre,
         precio = precio,
         imagen = imagen,
-        cantidad = cantidad
+        cantidad = cantidad,
+        mensaje = mensaje // <-- AÑADIDO
     )
 
     companion object {
@@ -26,8 +28,9 @@ data class ProductoEntity(
             id = producto.id,
             nombre = producto.nombre,
             precio = producto.precio,
-            imagen = producto.imagen, // ✅ coincide con tipo String?
-            cantidad = producto.cantidad
+            imagen = producto.imagen,
+            cantidad = producto.cantidad,
+            mensaje = producto.mensaje // <-- AÑADIDO
         )
     }
 }

@@ -12,7 +12,6 @@ import java.io.FileOutputStream
 
 object BoletaPdfGenerator {
 
-    // Esta función se ejecuta en un hilo de IO (desde el ViewModel o Screen)
     fun generar(context: Context, orden: Orden): Uri {
         val document = PdfDocument()
         val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create() // A4
@@ -44,6 +43,14 @@ object BoletaPdfGenerator {
             color = 0xFF555555.toInt()
         }
 
+        // --- MODIFICADO: Añadido estilo itálico ---
+        val smallItalicPaint = Paint().apply {
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
+            textSize = 10f
+            color = 0xFF555555.toInt()
+        }
+        // ------------------------------------------
+
         // --- Dibujar Contenido ---
         var y = 40f
         val x = 40f
@@ -65,12 +72,21 @@ object BoletaPdfGenerator {
         canvas.drawText("--- Productos ---", x, y, boldTextPaint)
         y += largeLineHeight
 
+        // ---- MODIFICADO AQUÍ ----
         // Items
         orden.items.forEach { item ->
             canvas.drawText("${item.nombreProducto} (x${item.cantidad})", x, y, textPaint)
             canvas.drawText(formateaCLP(item.subtotal), x + 400, y, textPaint)
             y += lineHeight
+
+            // --- AÑADIDO ---
+            if (!item.mensaje.isNullOrBlank()) {
+                canvas.drawText("  ↳ Mensaje: \"${item.mensaje}\"", x, y, smallItalicPaint) // Usar smallItalicPaint
+                y += lineHeight
+            }
+            // ----------------
         }
+        // -------------------------
         y += lineHeight
 
         // Total
@@ -92,12 +108,9 @@ object BoletaPdfGenerator {
         // --- Finalizar y Guardar ---
         document.finishPage(page)
 
-        // 1. Definir la carpeta de destino
-        // Usamos 'filesDir' (almacenamiento interno) que ya usas para fotos de perfil
         val pdfDir = File(context.filesDir, "boletas").apply { mkdirs() }
         val pdfFile = File(pdfDir, "boleta_${orden.id}.pdf")
 
-        // 2. Escribir el documento en el archivo
         try {
             FileOutputStream(pdfFile).use {
                 document.writeTo(it)
@@ -109,8 +122,6 @@ object BoletaPdfGenerator {
             document.close()
         }
 
-        // 3. Obtener la URI usando el FileProvider
-        // Asumiendo que tu 'authority' es (tu.paquete.provider) como en ProfileScreen
         val authority = "${context.packageName}.provider"
         return FileProvider.getUriForFile(context, authority, pdfFile)
     }

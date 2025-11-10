@@ -1,6 +1,5 @@
 package com.pasteleria_app.pasteleria_app.presentation.ui.screens
 
-// --- 1. IMPORTACIONES AÑADIDAS ---
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -11,8 +10,6 @@ import com.pasteleria_app.pasteleria_app.utils.BoletaPdfGenerator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-// -----------------------------------
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontStyle // <-- AÑADIDO
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -54,11 +52,8 @@ fun DetalleOrdenScreen(
 ) {
     val orden by ordenViewModel.ordenSeleccionada.collectAsState()
     val crema = Color(0xFFFBF3E9)
-
-    // --- 2. OBTENER CONTEXTO Y SCOPE ---
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    // -----------------------------------
 
     LaunchedEffect(ordenId) {
         ordenViewModel.cargarOrdenPorId(ordenId)
@@ -75,7 +70,6 @@ fun DetalleOrdenScreen(
         onOpenPerfil = onOpenPerfil,
         carritoViewModel = carritoViewModel
     ) { padding ->
-        // 'it' se refiere a la 'orden' no nula
         orden?.let { ordenDetalle ->
             LazyColumn(
                 modifier = Modifier
@@ -104,7 +98,6 @@ fun DetalleOrdenScreen(
                                 Text("Tracking: ${ordenDetalle.trackingId}")
                             }
                             Spacer(Modifier.height(24.dp))
-                            // Timeline de estado
                             TimelineSeguimiento(estadoActual = ordenDetalle.estado)
                         }
                     }
@@ -117,7 +110,7 @@ fun DetalleOrdenScreen(
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
-                        DetalleCompra(ordenDetalle)
+                        DetalleCompra(ordenDetalle) // <-- Este Composable se actualiza abajo
                     }
                 }
 
@@ -135,15 +128,12 @@ fun DetalleOrdenScreen(
                 // Botón Imprimir
                 item {
                     Button(
-                        // --- 3. ONCLICK ACTUALIZADO ---
                         onClick = {
                             scope.launch {
                                 try {
-                                    // 1. Generar PDF en hilo de I/O
                                     val pdfUri = withContext(Dispatchers.IO) {
                                         BoletaPdfGenerator.generar(context, ordenDetalle)
                                     }
-                                    // 2. Compartir en hilo principal
                                     compartirPdf(context, pdfUri, ordenDetalle.id)
                                 } catch (e: android.content.ActivityNotFoundException) {
                                     withContext(Dispatchers.Main) {
@@ -157,7 +147,6 @@ fun DetalleOrdenScreen(
                                 }
                             }
                         },
-                        // ------------------------------
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF5F5F5), contentColor = Color.Black),
                         elevation = ButtonDefaults.buttonElevation(0.dp)
@@ -202,7 +191,6 @@ fun TimelineSeguimiento(estadoActual: String) {
             }
 
             if (index < estados.size - 1) {
-                // Línea de conexión
                 Box(
                     Modifier
                         .weight(1f)
@@ -215,6 +203,7 @@ fun TimelineSeguimiento(estadoActual: String) {
     }
 }
 
+// ---- MODIFICADO AQUÍ ----
 @Composable
 fun DetalleCompra(orden: Orden) {
     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -229,11 +218,25 @@ fun DetalleCompra(orden: Orden) {
         Divider()
         // Items
         orden.items.forEach { item ->
-            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                Text(item.nombreProducto, modifier = Modifier.weight(2f))
-                Text("${item.cantidad}", modifier = Modifier.weight(0.5f))
-                Text(formateaCLP(item.precioUnitario), modifier = Modifier.weight(1f))
-                Text(formateaCLP(item.subtotal), modifier = Modifier.weight(1f))
+            // Se envuelve en un Column para mostrar el mensaje opcional
+            Column(Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    Text(item.nombreProducto, modifier = Modifier.weight(2f))
+                    Text("${item.cantidad}", modifier = Modifier.weight(0.5f))
+                    Text(formateaCLP(item.precioUnitario), modifier = Modifier.weight(1f))
+                    Text(formateaCLP(item.subtotal), modifier = Modifier.weight(1f))
+                }
+                // --- AÑADIDO ---
+                if (!item.mensaje.isNullOrBlank()) {
+                    Text(
+                        text = "Mensaje: \"${item.mensaje}\"",
+                        fontSize = 13.sp,
+                        fontStyle = FontStyle.Italic,
+                        color = Color(0xFF6D4C41),
+                        modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
+                    )
+                }
+                // ---------------
             }
         }
         Divider()
@@ -248,6 +251,7 @@ fun DetalleCompra(orden: Orden) {
         }
     }
 }
+// -------------------------
 
 @Composable
 fun DetalleEnvio(orden: Orden) {
@@ -269,17 +273,13 @@ fun InfoEnvioRow(label: String, value: String) {
     }
 }
 
-// --- 4. FUNCIÓN HELPER AÑADIDA ---
-/**
- * Lanza el "Share Sheet" de Android para compartir un archivo PDF.
- */
 private fun compartirPdf(context: Context, uri: Uri, pedidoId: String) {
     val sendIntent = Intent().apply {
         action = Intent.ACTION_SEND
         putExtra(Intent.EXTRA_STREAM, uri)
         putExtra(Intent.EXTRA_SUBJECT, "Boleta Pedido $pedidoId - Pastelería Mil Sabores")
         type = "application/pdf"
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // Muy importante
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     val shareIntent = Intent.createChooser(sendIntent, "Compartir Boleta PDF")
     context.startActivity(shareIntent)

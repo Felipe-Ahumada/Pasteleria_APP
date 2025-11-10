@@ -1,14 +1,11 @@
 package com.pasteleria_app.pasteleria_app.presentation.ui.screens
 
-// --- AÑADIR IMPORTS ---
 import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import com.pasteleria_app.pasteleria_app.utils.NotificationHelper
-// ----------------------
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontStyle // <-- AÑADIDO
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -44,14 +42,13 @@ fun EnvioScreen(
 ) {
     val productos by carritoViewModel.productos.collectAsState()
     val total = carritoViewModel.calcularTotal()
-    val context = LocalContext.current // <-- AÑADIDO
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     val crema = Color(0xFFFBF3E9)
     val marron = Color(0xFF3E2E20)
     val blanco = Color.White
 
-    // ... (todos tus mutableStateOf: runUsuario, nombres, etc.) ...
     var runUsuario by remember { mutableStateOf("") }
     var nombres by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
@@ -63,7 +60,6 @@ fun EnvioScreen(
     var metodoPago by remember { mutableStateOf("Webpay") }
     var mostrarCalendario by remember { mutableStateOf(false) }
 
-    // ... (isFormValid, todayMillis, datePickerState, isFechaValida, etc.) ...
     val isFormValid = remember(runUsuario, nombres, apellidos, direccion, comuna, fechaEntrega, tipoEntrega) {
         runUsuario.isNotBlank() &&
                 nombres.isNotBlank() &&
@@ -95,21 +91,16 @@ fun EnvioScreen(
         return millis >= todayMillis
     }
 
-    // --- 🔔 LÓGICA DE PERMISO DE NOTIFICACIÓN ---
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { /* No necesitamos hacer nada con el resultado, solo pedir */ }
+    ) { }
 
     LaunchedEffect(Unit) {
-        // Pedir permiso en cuanto el usuario entre a esta pantalla
-        // (solo en Android 13 o superior)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
-    // ---------------------------------------------
 
-    // ... (LaunchedEffect(correo) para autocompletar) ...
     val correo by usuarioViewModel.usuarioCorreo.collectAsState(initial = "")
     LaunchedEffect(correo) {
         val correoActual = correo ?: ""
@@ -141,7 +132,6 @@ fun EnvioScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // ... (item de Resumen del carrito) ...
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = blanco),
@@ -159,7 +149,7 @@ fun EnvioScreen(
                             color = marron
                         )
                         productos.forEach { producto ->
-                            ProductoResumenItem(producto)
+                            ProductoResumenItem(producto) // <-- Este Composable se actualiza abajo
                         }
                         Divider(color = Color.LightGray)
                         Row(
@@ -172,8 +162,6 @@ fun EnvioScreen(
                     }
                 }
             }
-
-            // ... (item de Información de entrega) ...
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = blanco),
@@ -184,7 +172,6 @@ fun EnvioScreen(
                         modifier = Modifier.padding(20.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // ... (Todos los campos: RUN, Correo, Nombres, etc.) ...
                         Text(
                             "Información de Entrega",
                             fontWeight = FontWeight.Bold,
@@ -303,10 +290,8 @@ fun EnvioScreen(
                             }
                             Spacer(Modifier.width(8.dp))
                             Button(
-                                // ---- 🔔 ONCLICK MODIFICADO ----
                                 onClick = {
                                     coroutineScope.launch {
-                                        // 1. Crear la orden y obtener su ID
                                         val pedidoId = ordenViewModel.crearOrden(
                                             productos = productos,
                                             total = total,
@@ -315,22 +300,15 @@ fun EnvioScreen(
                                             fechaEntrega = fechaEntrega,
                                             tipoEntrega = tipoEntrega
                                         )
-
-                                        // 2. Vaciar el carrito
                                         carritoViewModel.vaciarCarrito()
-
-                                        // 3. Mostrar la notificación nativa
                                         NotificationHelper.showOrderConfirmationNotification(
                                             context,
                                             pedidoId,
                                             total
                                         )
-
-                                        // 4. Navegar al historial
                                         onNavigateToHistorial()
                                     }
                                 },
-                                // ----------------------------
                                 enabled = isFormValid,
                                 colors = ButtonDefaults.buttonColors(containerColor = marron),
                                 modifier = Modifier.weight(1f)
@@ -344,8 +322,6 @@ fun EnvioScreen(
         }
     }
 
-    // ... (DatePickerDialog y funciones helper: ProductoResumenItem, campoEnvio, formateaCLP) ...
-    // (Tu código existente para esto está bien)
     if (mostrarCalendario) {
         DatePickerDialog(
             onDismissRequest = { mostrarCalendario = false },
@@ -381,19 +357,37 @@ fun EnvioScreen(
     }
 }
 
+// ---- MODIFICADO AQUÍ ----
 @Composable
 fun ProductoResumenItem(producto: Producto) {
-    Row(
+    // Se envuelve en un Column para mostrar el mensaje opcional
+    Column(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(vertical = 4.dp)
     ) {
-        Text(producto.nombre, color = Color(0xFF3E2E20))
-        Text("x${producto.cantidad}", color = Color(0xFF3E2E20))
-        Text(formateaCLP(producto.precio * producto.cantidad), color = Color(0xFF3E2E20))
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(producto.nombre, color = Color(0xFF3E2E20), fontWeight = FontWeight.Medium)
+            Text("x${producto.cantidad}", color = Color(0xFF3E2E20))
+            Text(formateaCLP(producto.precio * producto.cantidad), color = Color(0xFF3E2E20))
+        }
+        // --- AÑADIDO ---
+        if (!producto.mensaje.isNullOrBlank()) {
+            Text(
+                text = "Mensaje: \"${producto.mensaje}\"",
+                fontSize = 13.sp,
+                fontStyle = FontStyle.Italic,
+                color = Color(0xFF6D4C41), // Un marrón más suave
+                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+            )
+        }
+        // ---------------
     }
 }
+// -------------------------
 
 @Composable
 fun campoEnvio(

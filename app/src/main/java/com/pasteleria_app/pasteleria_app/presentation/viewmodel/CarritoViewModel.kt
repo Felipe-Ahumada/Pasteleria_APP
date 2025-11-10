@@ -17,14 +17,13 @@ import javax.inject.Inject
 @HiltViewModel
 class CarritoViewModel @Inject constructor(
     private val repository: CarritoRepository,
-    private val carritoUsuarioDao: CarritoUsuarioDao // ✅ nuevo DAO inyectado
+    private val carritoUsuarioDao: CarritoUsuarioDao
 ) : ViewModel() {
 
     private val _productos = MutableStateFlow<List<Producto>>(emptyList())
     val productos: StateFlow<List<Producto>> = _productos.asStateFlow()
 
     init {
-        // 🧁 Observa cambios del carrito actual (sesión)
         viewModelScope.launch {
             repository.obtenerProductos().collectLatest { lista ->
                 _productos.value = lista
@@ -32,15 +31,21 @@ class CarritoViewModel @Inject constructor(
         }
     }
 
-    // 🧩 Funciones básicas del carrito
+    // --- MODIFICADO AQUÍ ---
     fun agregarProducto(producto: Producto) {
-        viewModelScope.launch { repository.agregarProducto(producto) }
+        // El ViewModel ya no es "inteligente".
+        // Simplemente le pasa el producto al Repositorio,
+        // y el Repositorio se encarga de la lógica de "agregar o actualizar".
+        viewModelScope.launch {
+            repository.agregarProducto(producto)
+        }
     }
+    // --- FIN DE LA MODIFICACIÓN ---
 
     fun aumentarCantidad(producto: Producto) {
         viewModelScope.launch {
             val actualizado = producto.copy(cantidad = producto.cantidad + 1)
-            repository.actualizarCantidad(actualizado)
+            repository.actualizarProducto(actualizado) // Llama a la función correcta
         }
     }
 
@@ -48,7 +53,7 @@ class CarritoViewModel @Inject constructor(
         viewModelScope.launch {
             if (producto.cantidad > 1) {
                 val actualizado = producto.copy(cantidad = producto.cantidad - 1)
-                repository.actualizarCantidad(actualizado)
+                repository.actualizarProducto(actualizado) // Llama a la función correcta
             } else {
                 repository.eliminarProducto(producto)
             }
@@ -63,10 +68,8 @@ class CarritoViewModel @Inject constructor(
         viewModelScope.launch { repository.vaciarCarrito() }
     }
 
-    // Total: dejamos Int porque tus precios son Int
     fun calcularTotal(): Int = productos.value.sumOf { it.precio * it.cantidad }
 
-    // Guarda snapshot del carrito de sesión en la tabla por-usuario
     fun guardarCarritoUsuario(correo: String) {
         viewModelScope.launch {
             val lista = _productos.value
@@ -80,22 +83,20 @@ class CarritoViewModel @Inject constructor(
                         nombre = p.nombre,
                         precio = p.precio,
                         cantidad = p.cantidad,
-                        imagen = p.imagen // ✅ guardamos imagen real
+                        imagen = p.imagen,
+                        mensaje = p.mensaje // <-- Esto ya está correcto
                     )
                 )
             }
         }
     }
 
-    // Reconstruye la TABLA de sesión desde lo persistido (¡no seteamos _productos!)
     fun cargarCarritoUsuario(correo: String) {
         viewModelScope.launch {
             val guardados = carritoUsuarioDao.obtenerCarritoPorUsuario(correo)
 
-            // 1) vaciamos tabla de carrito de sesión
             repository.vaciarCarrito()
 
-            // 2) la repoblamos; el Flow del repository emitirá la lista completa
             guardados.forEach { item ->
                 repository.agregarProducto(
                     com.pasteleria_app.pasteleria_app.domain.model.Producto(
@@ -103,12 +104,11 @@ class CarritoViewModel @Inject constructor(
                         nombre = item.nombre,
                         precio = item.precio,
                         cantidad = item.cantidad,
-                        imagen = item.imagen // ✅ restauramos imagen real
+                        imagen = item.imagen,
+                        mensaje = item.mensaje // <-- Esto ya está correcto
                     )
                 )
             }
-            // 3) NO tocar _productos directamente: lo actualiza el Flow del repository
         }
     }
-
 }

@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontStyle // <-- AÑADIDO
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pasteleria_app.pasteleria_app.domain.model.Producto
@@ -136,7 +137,7 @@ fun CarritoScreen(
 
                         Button(
                             onClick = { onOpenEnvio() },
-                            enabled = productos.isNotEmpty(), // <-- AÑADIDO
+                            enabled = productos.isNotEmpty(),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC49A6C)),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
@@ -178,7 +179,6 @@ fun CarritoItem(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1.5f)
         ) {
-            // ✅ Imagen segura (usa placeholder si no hay imagen)
             val imagenId = if (producto.imagen != 0) producto.imagen else R.drawable.logo_landing
 
             Image(
@@ -192,6 +192,7 @@ fun CarritoItem(
 
             Spacer(Modifier.width(10.dp))
 
+            // ---- MODIFICADO AQUÍ ----
             Column {
                 Text(producto.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Text(
@@ -199,7 +200,19 @@ fun CarritoItem(
                     color = Color.Gray,
                     fontSize = 13.sp
                 )
+                // --- AÑADIDO ---
+                if (!producto.mensaje.isNullOrBlank()) {
+                    Text(
+                        text = "\"${producto.mensaje}\"",
+                        color = Color(0xFF3E2E20),
+                        fontSize = 13.sp,
+                        fontStyle = FontStyle.Italic,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+                // ---------------
             }
+            // -------------------------
         }
 
         // 🔢 Cantidad
@@ -254,11 +267,9 @@ fun CarritoItem(
     }
 }
 
-// 💰 Formatea precio en CLP (con puntos)
 private fun formateaCLP(valor: Int): String =
     "$" + "%,d".format(valor).replace(',', '.')
 
-// 🧁 Genera código de producto
 private fun codigoDesdeNombre(nombre: String): String {
     val tipo = when {
         nombre.contains("Torta", true) -> "TC"

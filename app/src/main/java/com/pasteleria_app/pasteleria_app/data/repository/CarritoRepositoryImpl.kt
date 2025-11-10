@@ -10,20 +10,22 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class CarritoRepositoryImpl @Inject constructor( // 👈 ESTA LÍNEA ES LA CLAVE
+class CarritoRepositoryImpl @Inject constructor(
     private val dao: CarritoDao
 ) : CarritoRepository {
 
     override fun obtenerProductos(): Flow<List<Producto>> =
         dao.obtenerProductos().map { lista -> lista.map { it.toDomain() } }
 
+    // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
     override suspend fun agregarProducto(producto: Producto) {
         val existente = dao.obtenerProductoPorNombre(producto.nombre)
 
         if (existente != null) {
-            // Si el producto ya existe, actualiza su cantidad
+            // Si el producto ya existe, actualiza cantidad Y MENSAJE
             val actualizado = existente.copy(
-                cantidad = existente.cantidad + producto.cantidad
+                cantidad = existente.cantidad + producto.cantidad,
+                mensaje = producto.mensaje // <-- ¡LA LÍNEA QUE FALTABA!
             )
             dao.actualizarProducto(actualizado)
         } else {
@@ -31,9 +33,9 @@ class CarritoRepositoryImpl @Inject constructor( // 👈 ESTA LÍNEA ES LA CLAVE
             dao.agregarProducto(ProductoEntity.fromDomain(producto))
         }
     }
+    // --- FIN DE LA CORRECCIÓN ---
 
-
-    override suspend fun actualizarCantidad(producto: Producto) {
+    override suspend fun actualizarProducto(producto: Producto) {
         dao.actualizarProducto(ProductoEntity.fromDomain(producto))
     }
 
@@ -43,5 +45,10 @@ class CarritoRepositoryImpl @Inject constructor( // 👈 ESTA LÍNEA ES LA CLAVE
 
     override suspend fun vaciarCarrito() {
         dao.vaciarCarrito()
+    }
+
+    override suspend fun obtenerProductoPorNombre(nombre: String): Producto? {
+        val entity = dao.obtenerProductoPorNombre(nombre)
+        return entity?.toDomain()
     }
 }
