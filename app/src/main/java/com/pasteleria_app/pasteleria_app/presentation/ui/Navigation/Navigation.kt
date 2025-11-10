@@ -133,6 +133,12 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                         popUpTo(Screen.Home.route)
                     }
                 },
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
                 carritoViewModel = carritoViewModel
             )
         }

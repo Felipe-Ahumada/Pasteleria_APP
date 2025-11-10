@@ -38,6 +38,12 @@ fun EnvioScreen(
     onNavigateToHistorial: () -> Unit = {},
     carritoViewModel: CarritoViewModel = hiltViewModel(),
     usuarioViewModel: UsuarioViewModel = hiltViewModel(),
+    onOpenHome: () -> Unit = {},
+    onOpenNosotros: () -> Unit = {},
+    onOpenCarta: () -> Unit = {},
+    onOpenContacto: () -> Unit = {},
+    onOpenLogin: () -> Unit = {},
+    onOpenPerfil: () -> Unit = {},
     ordenViewModel: OrdenViewModel = hiltViewModel()
 ) {
     val productos by carritoViewModel.productos.collectAsState()
@@ -122,6 +128,12 @@ fun EnvioScreen(
     PasteleriaScaffold(
         title = "Procesamiento de Pedido",
         onOpenCarrito = onOpenCarrito,
+        onOpenHome = onOpenHome,
+        onOpenNosotros = onOpenNosotros,
+        onOpenCarta = onOpenCarta,
+        onOpenContacto = onOpenContacto,
+        onOpenLogin = { onOpenLogin() },
+        onOpenPerfil = onOpenPerfil,
         carritoViewModel = carritoViewModel
     ) { padding ->
         LazyColumn(
