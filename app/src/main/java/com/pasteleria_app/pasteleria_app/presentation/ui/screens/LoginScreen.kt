@@ -16,7 +16,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaScaffold
+import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
+import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.UsuarioViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,11 +30,17 @@ fun LoginScreen(
     onOpenCarta: () -> Unit = {},
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
-    onLoginSuccess: () -> Unit = {},
-    onNavigateToRegister: () -> Unit = {}
+    onLoginSuccess: () -> Unit = {}, // Navega al perfil
+    onNavigateToRegister: () -> Unit = {},
+    onForgotPassword: () -> Unit = {},
+    carritoViewModel: CarritoViewModel? = null
 ) {
     val marron = MaterialTheme.colorScheme.primary
     val crema = MaterialTheme.colorScheme.background
+
+    val usuarioViewModel: UsuarioViewModel = hiltViewModel()
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var correo by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -43,6 +53,7 @@ fun LoginScreen(
         onOpenCarta = onOpenCarta,
         onOpenContacto = onOpenContacto,
         onOpenCarrito = onOpenCarrito,
+        carritoViewModel = carritoViewModel
     ) { padding ->
 
         Box(
@@ -66,7 +77,7 @@ fun LoginScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // 👤 Icono
+                    // 👤 Icono superior
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
                         contentDescription = "Icono usuario",
@@ -83,7 +94,7 @@ fun LoginScreen(
                         textAlign = TextAlign.Center
                     )
 
-                    // 📧 Correo
+                    // 📧 Campo de correo
                     OutlinedTextField(
                         value = correo,
                         onValueChange = { correo = it },
@@ -93,7 +104,7 @@ fun LoginScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // 🔒 Contraseña
+                    // 🔒 Campo de contraseña
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
@@ -123,13 +134,31 @@ fun LoginScreen(
                             text = "¿Olvidaste tu contraseña?",
                             color = marron,
                             fontSize = 14.sp,
-                            modifier = Modifier.clickable { /* TODO */ }
+                            modifier = Modifier.clickable { onForgotPassword() }
                         )
                     }
 
-                    // 🔘 Botones
+                    // 🔘 Botón principal — validación de login
                     Button(
-                        onClick = onLoginSuccess,
+                        onClick = {
+                            scope.launch {
+                                when {
+                                    correo.isEmpty() || password.isEmpty() -> {
+                                        snackbarHostState.showSnackbar("Completa todos los campos ❗")
+                                    }
+
+                                    else -> {
+                                        val valido = usuarioViewModel.validarUsuario(correo, password)
+                                        if (valido) {
+                                            snackbarHostState.showSnackbar("Bienvenido de nuevo 🎂")
+                                            onLoginSuccess()
+                                        } else {
+                                            snackbarHostState.showSnackbar("Correo o contraseña incorrectos ❌")
+                                        }
+                                    }
+                                }
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = marron),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth().height(50.dp)
@@ -137,6 +166,7 @@ fun LoginScreen(
                         Text("Ingresar", color = Color.White, fontWeight = FontWeight.Bold)
                     }
 
+                    // 👥 Botones secundarios
                     Button(
                         onClick = { /* TODO: login vendedor */ },
                         colors = ButtonDefaults.buttonColors(containerColor = marron),
@@ -157,20 +187,30 @@ fun LoginScreen(
 
                     Divider(color = Color.LightGray, modifier = Modifier.padding(vertical = 8.dp))
 
-                    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                    // 🔗 Registro
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text("¿No tienes cuenta?", color = Color.DarkGray)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "Crear cuenta",
                             color = marron,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clickable {
-                                onNavigateToRegister()
-                            }
+                            modifier = Modifier.clickable { onNavigateToRegister() }
                         )
                     }
                 }
             }
+
+            // 📢 Snackbar inferior
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 20.dp)
+            )
         }
     }
 }

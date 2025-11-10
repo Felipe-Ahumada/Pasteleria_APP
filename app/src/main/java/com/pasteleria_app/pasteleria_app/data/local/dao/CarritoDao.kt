@@ -1,7 +1,7 @@
 package com.pasteleria_app.pasteleria_app.data.local.dao
 
 import androidx.room.*
-import com.pasteleria_app.pasteleria_app.data.local.entity.ProductoEntity
+import com.pasteleria_app.pasteleria_app.data.local.entities.ProductoEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -20,6 +20,8 @@ import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewMo
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.ui.text.font.FontWeight
+import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.UsuarioViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,7 +32,8 @@ fun PasteleriaScaffold(
     onOpenCarta: () -> Unit = {},
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
-    onOpenLogin: () -> Unit = {}, // 👈 Agregado
+    onOpenLogin: () -> Unit = {},
+    onOpenPerfil: () -> Unit = {}, // 👈 nuevo
     carritoViewModel: CarritoViewModel? = null,
     content: @Composable (PaddingValues) -> Unit
 ) {
@@ -56,8 +59,8 @@ fun PasteleriaScaffold(
                         "Carta" -> { onOpenCarta(); scope.launch { drawerState.close() } }
                         "Contacto" -> { onOpenContacto(); scope.launch { drawerState.close() } }
                         "Carrito de Compra" -> { onOpenCarrito(); scope.launch { drawerState.close() } }
-                        "Login" -> { onOpenLogin(); scope.launch { drawerState.close() } } // ✅ Aquí navega al Login
-                        else -> scope.launch { drawerState.close() }
+                        "Login" -> { onOpenLogin(); scope.launch { drawerState.close() } }
+                        "Perfil" -> { onOpenPerfil(); scope.launch { drawerState.close() } } // ✅ añadido
                     }
                 },
                 onClose = { scope.launch { drawerState.close() } }
@@ -127,8 +130,10 @@ fun PasteleriaScaffold(
 @Composable
 fun DrawerContent(
     onItemClick: (String) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    usuarioViewModel: UsuarioViewModel = hiltViewModel() // ✅ agregamos esto
 ) {
+    val nombreUsuario by usuarioViewModel.usuarioActual.collectAsState(initial = null)
     val menuItems = listOf("Inicio", "Nosotros", "Carta", "Contacto", "Carrito de Compra")
 
     Column(
@@ -139,7 +144,6 @@ fun DrawerContent(
             .padding(vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 🧁 Logo
         Image(
             painter = painterResource(id = R.drawable.logo_landing),
             contentDescription = "Logo Pastelería",
@@ -148,7 +152,6 @@ fun DrawerContent(
                 .padding(bottom = 16.dp)
         )
 
-        // 📋 Menú de navegación
         menuItems.forEach { item ->
             TextButton(onClick = { onItemClick(item) }, modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -161,30 +164,52 @@ fun DrawerContent(
         }
 
         Spacer(modifier = Modifier.weight(1f))
-
         Divider(color = Color.White.copy(alpha = 0.3f))
 
-        // 👤 Botón de iniciar sesión
-        TextButton(
-            onClick = { onItemClick("Login") }, // Navegará luego a LoginScreen
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "Iniciar sesión",
-                tint = Color.White,
-                modifier = Modifier.size(22.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Iniciar sesión",
-                color = Color.White,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+        if (nombreUsuario != null) {
+            // 👤 Usuario logueado
+            TextButton(
+                onClick = { onItemClick("Perfil") }, // 🔜 redirige al perfil
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = "Perfil",
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = nombreUsuario ?: "Usuario",
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        } else {
+            // 🚪 No hay sesión
+            TextButton(
+                onClick = { onItemClick("Login") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = "Iniciar sesión",
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Iniciar sesión",
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
-

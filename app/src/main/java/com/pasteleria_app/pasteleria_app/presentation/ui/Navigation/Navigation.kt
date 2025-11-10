@@ -18,7 +18,9 @@ sealed class Screen(val route: String) {
     data object Carrito : Screen("carrito")
     data object Login : Screen("login")
     data object Register : Screen("register")
+    data object ResetPassword : Screen("reset_password")
 
+    data object Profile : Screen("profile")
 }
 
 @Composable
@@ -36,7 +38,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
             )
         }
 
-        // 🏠 Home
+        // Home
         composable(Screen.Home.route) {
             HomeScreen(
                 onOpenHome = { navController.navigate(Screen.Home.route) },
@@ -45,9 +47,11 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
                 onOpenLogin = { navController.navigate(Screen.Login.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
                 carritoViewModel = carritoViewModel
             )
         }
+
 
         // 👩‍🍳 Nosotros
         composable(Screen.Nosotros.route) {
@@ -58,6 +62,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
                 onOpenLogin = { navController.navigate(Screen.Login.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
                 carritoViewModel = carritoViewModel // ✅ también aquí
             )
         }
@@ -71,6 +76,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
                 onOpenLogin = { navController.navigate(Screen.Login.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
                 carritoViewModel = carritoViewModel
             )
         }
@@ -84,6 +90,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
                 onOpenLogin = { navController.navigate(Screen.Login.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
                 carritoViewModel = carritoViewModel
             )
         }
@@ -97,6 +104,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
                 onOpenLogin = { navController.navigate(Screen.Login.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
                 carritoViewModel = carritoViewModel
             )
         }
@@ -107,13 +115,51 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenCarta = { navController.navigate(Screen.Carta.route) },
                 onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
-                onNavigateToRegister = { navController.navigate(Screen.Register.route) }
+                onNavigateToRegister = { navController.navigate(Screen.Register.route) },
+                onForgotPassword = { navController.navigate(Screen.ResetPassword.route) },
+                carritoViewModel = carritoViewModel,
+                onLoginSuccess = {
+                    navController.navigate(Screen.Profile.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true } // elimina login del stack
+                    }
+                }
             )
         }
         composable(Screen.Register.route) {
             RegisterScreen(
                 onOpenHome = { navController.navigate(Screen.Home.route) },
-                onOpenLogin = { navController.navigate(Screen.Login.route) }
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
+                carritoViewModel = carritoViewModel
+            )
+        }
+
+        composable(Screen.ResetPassword.route) {
+            ResetPasswordScreen(
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onBackToLogin = { navController.navigate(Screen.Login.route) },
+                carritoViewModel = carritoViewModel
+            )
+        }
+        composable(Screen.Profile.route) {
+            ProfileScreen(
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
             )
         }
 

@@ -1,7 +1,7 @@
 package com.pasteleria_app.pasteleria_app.data.repository
 
 import com.pasteleria_app.pasteleria_app.data.local.dao.CarritoDao
-import com.pasteleria_app.pasteleria_app.data.local.entity.ProductoEntity
+import com.pasteleria_app.pasteleria_app.data.local.entities.ProductoEntity
 import com.pasteleria_app.pasteleria_app.domain.model.Producto
 import com.pasteleria_app.pasteleria_app.domain.repository.CarritoRepository
 import kotlinx.coroutines.flow.Flow

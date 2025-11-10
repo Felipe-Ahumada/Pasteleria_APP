@@ -30,6 +30,7 @@ fun CarritoScreen(
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
+    onOpenPerfil: () -> Unit = {},
     carritoViewModel: CarritoViewModel
 ) {
     // Observar productos en tiempo real (desde Room)
@@ -44,6 +45,7 @@ fun CarritoScreen(
         onOpenContacto = onOpenContacto,
         onOpenCarrito = onOpenCarrito,
         onOpenLogin = { onOpenLogin() },
+        onOpenPerfil = onOpenPerfil,
         carritoViewModel = carritoViewModel
     ) { padding ->
 

@@ -1,4 +1,4 @@
-package com.pasteleria_app.pasteleria_app.data.local.entity
+package com.pasteleria_app.pasteleria_app.data.local.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
