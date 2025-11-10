@@ -3,6 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.pasteleria_app.pasteleria_app">
 
+    <!-- 🎥 Permiso para usar la cámara -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+
     <application
         android:name=".PasteleriaApp"
         android:allowBackup="true"
@@ -15,7 +20,7 @@
         android:theme="@style/Theme.Pasteleria_APP"
         tools:targetApi="31">
 
-        <!-- 🚀 Actividad principal (launcher) -->
+        <!-- 🚀 Actividad principal -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -26,6 +31,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 📸 FileProvider para compartir la URI de la cámara -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
     </application>
 

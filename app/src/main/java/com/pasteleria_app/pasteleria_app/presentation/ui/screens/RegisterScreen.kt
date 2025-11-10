@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,7 +39,7 @@ fun RegisterScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 🧁 Campos del formulario
+    // Campos
     var primerNombre by remember { mutableStateOf("") }
     var segundoNombre by remember { mutableStateOf("") }
     var apellidoPaterno by remember { mutableStateOf("") }
@@ -53,7 +54,7 @@ fun RegisterScreen(
     var codigoBienvenida by remember { mutableStateOf("") }
     var aceptaTerminos by remember { mutableStateOf(false) }
 
-    // 🗺️ Región y comuna
+    // Región y comuna
     val regiones = listOf("Biobío")
     val comunas = listOf("Concepción", "Talcahuano", "Hualpén")
     var regionSeleccionada by remember { mutableStateOf("") }
@@ -83,7 +84,6 @@ fun RegisterScreen(
                     .padding(horizontal = 20.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 🧾 Título
                 Text(
                     text = "Crear cuenta",
                     fontSize = 26.sp,
@@ -92,19 +92,90 @@ fun RegisterScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // 🧍 Datos personales
-                campo("Primer nombre *", "Ej: María", primerNombre) { primerNombre = it }
-                campo("Segundo nombre (opcional)", "Ej: Luisa", segundoNombre) { segundoNombre = it }
-                campo("Apellido paterno *", "Ej: Pérez", apellidoPaterno) { apellidoPaterno = it }
-                campo("Apellido materno (opcional)", "Ej: González", apellidoMaterno) { apellidoMaterno = it }
-                campo("RUN *", "Ej: 19011022K", run) { run = it }
+                // Datos personales
+                ValidatedField(
+                    label = "Primer nombre *",
+                    placeholder = "Ej: María",
+                    value = primerNombre,
+                    onValueChange = { if (it.length <= 25) primerNombre = it },
+                    showError = primerNombre.isBlank(),
+                    errorText = "Campo obligatorio"
+                )
 
-                campo("Fecha de nacimiento (opcional)", "dd/mm/aaaa", fechaNacimiento) { fechaNacimiento = it }
+                ValidatedField(
+                    label = "Segundo nombre (opcional)",
+                    placeholder = "Ej: Luisa",
+                    value = segundoNombre,
+                    onValueChange = { if (it.length <= 25) segundoNombre = it },
+                    showError = false
+                )
+
+                ValidatedField(
+                    label = "Apellido paterno *",
+                    placeholder = "Ej: Pérez",
+                    value = apellidoPaterno,
+                    onValueChange = { if (it.length <= 25) apellidoPaterno = it },
+                    showError = apellidoPaterno.isBlank(),
+                    errorText = "Campo obligatorio"
+                )
+
+                ValidatedField(
+                    label = "Apellido materno (opcional)",
+                    placeholder = "Ej: González",
+                    value = apellidoMaterno,
+                    onValueChange = { if (it.length <= 25) apellidoMaterno = it },
+                    showError = false
+                )
+
+                ValidatedField(
+                    label = "RUN *",
+                    placeholder = "Ej: 19011022K",
+                    value = run,
+                    onValueChange = { if (it.length <= 10) run = it },
+                    showError = run.isBlank(),
+                    errorText = "Campo obligatorio"
+                )
+
+                // 🎂 Fecha de nacimiento con autocompletado de slashes
+                ValidatedField(
+                    label = "Fecha de nacimiento (opcional)",
+                    placeholder = "dd/mm/aaaa",
+                    value = fechaNacimiento,
+                    onValueChange = {
+                        // Solo números y máximo 8 dígitos sin slashes
+                        val cleaned = it.filter { c -> c.isDigit() }.take(8)
+                        fechaNacimiento = when {
+                            cleaned.length >= 5 ->
+                                "${cleaned.take(2)}/${cleaned.drop(2).take(2)}/${cleaned.drop(4)}"
+                            cleaned.length >= 3 ->
+                                "${cleaned.take(2)}/${cleaned.drop(2)}"
+                            else -> cleaned
+                        }
+                    },
+                    showError = fechaNacimiento.isNotBlank() &&
+                            !fechaNacimiento.matches(Regex("^\\d{2}/\\d{2}/\\d{4}\$")),
+                    errorText = "Formato inválido (dd/mm/aaaa)"
+                )
+
                 campo("Teléfono (opcional)", "+56 9 1234 5678", telefono) { telefono = it }
 
-                // 📬 Dirección y contacto
-                campo("Correo electrónico *", "usuario@dominio.com", correo) { correo = it }
-                campo("Dirección *", "Calle 123", direccion) { direccion = it }
+                ValidatedField(
+                    label = "Correo electrónico *",
+                    placeholder = "usuario@dominio.com",
+                    value = correo,
+                    onValueChange = { correo = it },
+                    showError = correo.isBlank(),
+                    errorText = "Campo obligatorio"
+                )
+
+                ValidatedField(
+                    label = "Dirección *",
+                    placeholder = "Calle 123",
+                    value = direccion,
+                    onValueChange = { direccion = it },
+                    showError = direccion.isBlank(),
+                    errorText = "Campo obligatorio"
+                )
 
                 // Región
                 ExposedDropdownMenuBox(
@@ -116,10 +187,13 @@ fun RegisterScreen(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Región *") },
+                        isError = regionSeleccionada.isBlank(),
+                        supportingText = {
+                            if (regionSeleccionada.isBlank())
+                                Text("Campo obligatorio", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                        },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandRegion) },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
                     ExposedDropdownMenu(
                         expanded = expandRegion,
@@ -149,10 +223,13 @@ fun RegisterScreen(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Comuna *") },
+                        isError = comunaSeleccionada.isBlank(),
+                        supportingText = {
+                            if (comunaSeleccionada.isBlank())
+                                Text("Campo obligatorio", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                        },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandComuna) },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
                     ExposedDropdownMenu(
                         expanded = expandComuna,
@@ -172,30 +249,31 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 🔐 Contraseña
-                OutlinedTextField(
+                // Contraseñas
+                ValidatedField(
+                    label = "Contraseña *",
+                    placeholder = "Entre 4 y 10 caracteres",
                     value = contrasena,
-                    onValueChange = { contrasena = it },
-                    label = { Text("Contraseña *") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
+                    onValueChange = { if (it.length <= 10) contrasena = it },
+                    showError = contrasena.isBlank(),
+                    errorText = "Campo obligatorio",
+                    isPassword = true
                 )
 
-                OutlinedTextField(
+                ValidatedField(
+                    label = "Confirmar contraseña *",
+                    placeholder = "Repite tu contraseña",
                     value = confirmarContrasena,
-                    onValueChange = { confirmarContrasena = it },
-                    label = { Text("Confirmar contraseña *") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
+                    onValueChange = { if (it.length <= 10) confirmarContrasena = it },
+                    showError = confirmarContrasena != contrasena && confirmarContrasena.isNotBlank(),
+                    errorText = "Las contraseñas no coinciden",
+                    isPassword = true
                 )
 
                 campo("Código de bienvenida (opcional)", "Ej: MILSABORES2025", codigoBienvenida) {
                     codigoBienvenida = it
                 }
 
-                // ✅ Checkbox términos
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
@@ -214,7 +292,6 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 🧠 Botón Crear cuenta
                 Button(
                     onClick = {
                         scope.launch {
@@ -273,7 +350,39 @@ fun RegisterScreen(
     }
 }
 
-// ✅ Campo reutilizable
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ValidatedField(
+    label: String,
+    placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    showError: Boolean,
+    errorText: String? = null,
+    isPassword: Boolean = false
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        placeholder = { Text(placeholder) },
+        isError = showError,
+        singleLine = true,
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        supportingText = {
+            if (showError && !errorText.isNullOrEmpty()) {
+                Text(
+                    text = errorText,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 12.sp
+                )
+            }
+        },
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+    )
+}
+
 @Composable
 fun campo(
     label: String,
@@ -288,13 +397,10 @@ fun campo(
         placeholder = { Text(placeholder) },
         singleLine = true,
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
     )
 }
 
-// ✅ Validaciones
 fun validarCampos(
     primerNombre: String,
     apellidoPaterno: String,
