@@ -29,9 +29,10 @@ fun CarritoScreen(
     onOpenCarta: () -> Unit = {},
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
+    onOpenLogin: () -> Unit = {},
     carritoViewModel: CarritoViewModel
 ) {
-    // ✅ Observar productos en tiempo real (desde Room)
+    // Observar productos en tiempo real (desde Room)
     val productos by carritoViewModel.productos.collectAsState()
     val total = carritoViewModel.calcularTotal()
 
@@ -42,6 +43,7 @@ fun CarritoScreen(
         onOpenCarta = onOpenCarta,
         onOpenContacto = onOpenContacto,
         onOpenCarrito = onOpenCarrito,
+        onOpenLogin = { onOpenLogin() },
         carritoViewModel = carritoViewModel
     ) { padding ->
 

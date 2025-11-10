@@ -39,6 +39,7 @@ fun CartaScreen(
     onOpenCarta: () -> Unit = {},
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
+    onOpenLogin: () -> Unit = {},
     carritoViewModel: CarritoViewModel
 ) {
     val crema = MaterialTheme.colorScheme.background
@@ -61,6 +62,7 @@ fun CartaScreen(
         onOpenCarta = onOpenCarta,
         onOpenContacto = onOpenContacto,
         onOpenCarrito = onOpenCarrito,
+        onOpenLogin = { onOpenLogin() },
         carritoViewModel = carritoViewModel
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {

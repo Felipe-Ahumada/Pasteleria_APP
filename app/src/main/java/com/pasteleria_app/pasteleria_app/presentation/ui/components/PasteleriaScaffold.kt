@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import com.pasteleria_app.pasteleria_app.R
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.ui.text.font.FontWeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,7 +30,8 @@ fun PasteleriaScaffold(
     onOpenCarta: () -> Unit = {},
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
-    carritoViewModel: CarritoViewModel? = null, // ✅ Puede ser null
+    onOpenLogin: () -> Unit = {}, // 👈 Agregado
+    carritoViewModel: CarritoViewModel? = null,
     content: @Composable (PaddingValues) -> Unit
 ) {
     val crema = MaterialTheme.colorScheme.background
@@ -53,6 +56,7 @@ fun PasteleriaScaffold(
                         "Carta" -> { onOpenCarta(); scope.launch { drawerState.close() } }
                         "Contacto" -> { onOpenContacto(); scope.launch { drawerState.close() } }
                         "Carrito de Compra" -> { onOpenCarrito(); scope.launch { drawerState.close() } }
+                        "Login" -> { onOpenLogin(); scope.launch { drawerState.close() } } // ✅ Aquí navega al Login
                         else -> scope.launch { drawerState.close() }
                     }
                 },
@@ -135,6 +139,7 @@ fun DrawerContent(
             .padding(vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // 🧁 Logo
         Image(
             painter = painterResource(id = R.drawable.logo_landing),
             contentDescription = "Logo Pastelería",
@@ -143,23 +148,43 @@ fun DrawerContent(
                 .padding(bottom = 16.dp)
         )
 
+        // 📋 Menú de navegación
         menuItems.forEach { item ->
             TextButton(onClick = { onItemClick(item) }, modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = item,
                     color = Color.White,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 6.dp)
                 )
             }
         }
 
         Spacer(modifier = Modifier.weight(1f))
+
         Divider(color = Color.White.copy(alpha = 0.3f))
 
-        Text(
-            text = "admin",
-            color = Color.White,
-            modifier = Modifier.padding(16.dp)
-        )
+        // 👤 Botón de iniciar sesión
+        TextButton(
+            onClick = { onItemClick("Login") }, // Navegará luego a LoginScreen
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = "Iniciar sesión",
+                tint = Color.White,
+                modifier = Modifier.size(22.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Iniciar sesión",
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
+

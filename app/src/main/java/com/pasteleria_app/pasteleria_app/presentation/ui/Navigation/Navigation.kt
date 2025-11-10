@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.pasteleria_app.pasteleria_app.presentation.ui.screens.*
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
+import androidx.compose.material3.Text
 
 // 🚀 Rutas principales
 sealed class Screen(val route: String) {
@@ -15,10 +16,13 @@ sealed class Screen(val route: String) {
     data object Carta : Screen("carta")
     data object Contacto : Screen("contacto")
     data object Carrito : Screen("carrito")
+    data object Login : Screen("login")
+    data object Register : Screen("register")
+
 }
 
 @Composable
-fun Navigation(carritoViewModel: CarritoViewModel) { // ✅ Recibe el ViewModel global
+fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel global
     val navController = rememberNavController()
 
     NavHost(
@@ -40,7 +44,8 @@ fun Navigation(carritoViewModel: CarritoViewModel) { // ✅ Recibe el ViewModel 
                 onOpenCarta = { navController.navigate(Screen.Carta.route) },
                 onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
-                carritoViewModel = carritoViewModel // ✅ se pasa aquí
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
+                carritoViewModel = carritoViewModel
             )
         }
 
@@ -52,6 +57,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { // ✅ Recibe el ViewModel 
                 onOpenCarta = { navController.navigate(Screen.Carta.route) },
                 onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
                 carritoViewModel = carritoViewModel // ✅ también aquí
             )
         }
@@ -64,7 +70,8 @@ fun Navigation(carritoViewModel: CarritoViewModel) { // ✅ Recibe el ViewModel 
                 onOpenCarta = { navController.navigate(Screen.Carta.route) },
                 onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
-                carritoViewModel = carritoViewModel // ✅ igual aquí
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
+                carritoViewModel = carritoViewModel
             )
         }
 
@@ -76,7 +83,8 @@ fun Navigation(carritoViewModel: CarritoViewModel) { // ✅ Recibe el ViewModel 
                 onOpenCarta = { navController.navigate(Screen.Carta.route) },
                 onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
-                carritoViewModel = carritoViewModel // ✅ también aquí
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
+                carritoViewModel = carritoViewModel
             )
         }
 
@@ -88,8 +96,26 @@ fun Navigation(carritoViewModel: CarritoViewModel) { // ✅ Recibe el ViewModel 
                 onOpenCarta = { navController.navigate(Screen.Carta.route) },
                 onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
-                carritoViewModel = carritoViewModel // ✅ finalmente aquí también
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
+                carritoViewModel = carritoViewModel
             )
         }
+        composable(Screen.Login.route) {
+            LoginScreen(
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onNavigateToRegister = { navController.navigate(Screen.Register.route) }
+            )
+        }
+        composable(Screen.Register.route) {
+            RegisterScreen(
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenLogin = { navController.navigate(Screen.Login.route) }
+            )
+        }
+
     }
 }

@@ -34,6 +34,7 @@ fun HomeScreen(
     onOpenCarta: () -> Unit = {},
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
+    onOpenLogin: () -> Unit = {},
     carritoViewModel: CarritoViewModel // ✅ añadimos ViewModel para mostrar badge
 ) {
     val crema = MaterialTheme.colorScheme.background
@@ -54,7 +55,8 @@ fun HomeScreen(
         onOpenCarta = onOpenCarta,
         onOpenContacto = onOpenContacto,
         onOpenCarrito = onOpenCarrito,
-        carritoViewModel = carritoViewModel // ✅ activa la badge
+        onOpenLogin = { onOpenLogin() }, // ✅ Nuevo
+        carritoViewModel = carritoViewModel
     ) { padding ->
         LazyColumn(
             modifier = Modifier
