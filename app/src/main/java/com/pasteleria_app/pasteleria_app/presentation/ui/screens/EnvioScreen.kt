@@ -1,5 +1,14 @@
 package com.pasteleria_app.pasteleria_app.presentation.ui.screens
 
+// --- AÑADIR IMPORTS ---
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import com.pasteleria_app.pasteleria_app.utils.NotificationHelper
+// ----------------------
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,29 +36,22 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EnvioScreen(
-    onOpenHome: () -> Unit = {},
-    onOpenNosotros: () -> Unit = {},
-    onOpenCarta: () -> Unit = {},
-    onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
-    onOpenLogin: () -> Unit = {},
-    onOpenPerfil: () -> Unit = {},
-    onNavigateToHistorial: () -> Unit = {}, // <-- MODIFICADO
+    onNavigateToHistorial: () -> Unit = {},
     carritoViewModel: CarritoViewModel = hiltViewModel(),
     usuarioViewModel: UsuarioViewModel = hiltViewModel(),
-    ordenViewModel: OrdenViewModel = hiltViewModel() // <-- AÑADIDO
+    ordenViewModel: OrdenViewModel = hiltViewModel()
 ) {
     val productos by carritoViewModel.productos.collectAsState()
     val total = carritoViewModel.calcularTotal()
+    val context = LocalContext.current // <-- AÑADIDO
+    val coroutineScope = rememberCoroutineScope()
 
     val crema = Color(0xFFFBF3E9)
     val marron = Color(0xFF3E2E20)
     val blanco = Color.White
 
-    // 🧁 Datos usuario desde DataStore
-    val correo by usuarioViewModel.usuarioCorreo.collectAsState(initial = "")
-
-    // 🧩 Campos
+    // ... (todos tus mutableStateOf: runUsuario, nombres, etc.) ...
     var runUsuario by remember { mutableStateOf("") }
     var nombres by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
@@ -59,10 +61,9 @@ fun EnvioScreen(
     var fechaEntrega by remember { mutableStateOf("") }
     var tipoEntrega by remember { mutableStateOf("") }
     var metodoPago by remember { mutableStateOf("Webpay") }
-
     var mostrarCalendario by remember { mutableStateOf(false) }
 
-    // ✅ Variable de validación del formulario
+    // ... (isFormValid, todayMillis, datePickerState, isFechaValida, etc.) ...
     val isFormValid = remember(runUsuario, nombres, apellidos, direccion, comuna, fechaEntrega, tipoEntrega) {
         runUsuario.isNotBlank() &&
                 nombres.isNotBlank() &&
@@ -72,10 +73,6 @@ fun EnvioScreen(
                 fechaEntrega.isNotBlank() &&
                 tipoEntrega.isNotBlank()
     }
-
-    // --- INICIO: LÓGICA DE FECHA MODIFICADA ---
-
-    // ✅ 1. Define el inicio de "hoy" (medianoche) para la validación
     val todayMillis = remember {
         Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
@@ -84,31 +81,36 @@ fun EnvioScreen(
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
     }
-
-    // ✅ 2. Modifica el DatePickerState para deshabilitar fechas pasadas
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = todayMillis, // Se seleccionará "hoy" por defecto
+        initialSelectedDateMillis = todayMillis,
         yearRange = 2024..2030,
         selectableDates = object : SelectableDates {
-            // Solo fechas desde hoy (medianoche) en adelante son seleccionables
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
                 return utcTimeMillis >= todayMillis
             }
         }
     )
-
-    // ✅ 3. Actualiza tu función de validación para ser consistente
     fun isFechaValida(millis: Long?): Boolean {
         if (millis == null) return false
-        // El DatePickerState ya no debería permitir fechas no válidas,
-        // pero mantenemos esto por seguridad.
         return millis >= todayMillis
     }
 
-    // --- FIN: LÓGICA DE FECHA MODIFICADA ---
+    // --- 🔔 LÓGICA DE PERMISO DE NOTIFICACIÓN ---
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* No necesitamos hacer nada con el resultado, solo pedir */ }
 
+    LaunchedEffect(Unit) {
+        // Pedir permiso en cuanto el usuario entre a esta pantalla
+        // (solo en Android 13 o superior)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+    // ---------------------------------------------
 
-    // ✅ Autocompletar usuario logueado
+    // ... (LaunchedEffect(correo) para autocompletar) ...
+    val correo by usuarioViewModel.usuarioCorreo.collectAsState(initial = "")
     LaunchedEffect(correo) {
         val correoActual = correo ?: ""
         if (correoActual.isNotBlank()) {
@@ -123,20 +125,12 @@ fun EnvioScreen(
             }
         }
     }
-
     val usuarioLogueado = !correo.isNullOrBlank()
 
-    val coroutineScope = rememberCoroutineScope() // <-- AÑADIDO
 
     PasteleriaScaffold(
         title = "Procesamiento de Pedido",
-        onOpenHome = onOpenHome,
-        onOpenNosotros = onOpenNosotros,
-        onOpenCarta = onOpenCarta,
-        onOpenContacto = onOpenContacto,
         onOpenCarrito = onOpenCarrito,
-        onOpenLogin = onOpenLogin,
-        onOpenPerfil = onOpenPerfil,
         carritoViewModel = carritoViewModel
     ) { padding ->
         LazyColumn(
@@ -147,7 +141,7 @@ fun EnvioScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // 🧾 Resumen del carrito
+            // ... (item de Resumen del carrito) ...
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = blanco),
@@ -164,11 +158,9 @@ fun EnvioScreen(
                             fontSize = 20.sp,
                             color = marron
                         )
-
                         productos.forEach { producto ->
                             ProductoResumenItem(producto)
                         }
-
                         Divider(color = Color.LightGray)
                         Row(
                             Modifier.fillMaxWidth(),
@@ -181,7 +173,7 @@ fun EnvioScreen(
                 }
             }
 
-            // 🚚 Información de entrega
+            // ... (item de Información de entrega) ...
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = blanco),
@@ -192,19 +184,18 @@ fun EnvioScreen(
                         modifier = Modifier.padding(20.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
+                        // ... (Todos los campos: RUN, Correo, Nombres, etc.) ...
                         Text(
                             "Información de Entrega",
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
                             color = marron
                         )
-
                         campoEnvio("RUN", "19011022K", runUsuario, { runUsuario = it }, usuarioLogueado)
                         campoEnvio("Correo", "usuario@correo.com", correo ?: "", {}, true)
                         campoEnvio("Nombres", "Ej: María", nombres, { nombres = it }, usuarioLogueado)
                         campoEnvio("Apellidos", "Ej: González Pérez", apellidos, { apellidos = it }, usuarioLogueado)
                         campoEnvio("Dirección", "Ej: Calle 123, Concepción", direccion, { direccion = it }, usuarioLogueado)
-
                         OutlinedTextField(
                             value = region,
                             onValueChange = {},
@@ -214,10 +205,8 @@ fun EnvioScreen(
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         )
-
                         val comunas = listOf("Concepción", "Talcahuano", "Hualpén")
                         var expandirComuna by remember { mutableStateOf(false) }
-
                         ExposedDropdownMenuBox(
                             expanded = expandirComuna,
                             onExpandedChange = { expandirComuna = it }
@@ -247,8 +236,6 @@ fun EnvioScreen(
                                 }
                             }
                         }
-
-                        // 📅 Fecha preferida
                         OutlinedTextField(
                             value = fechaEntrega,
                             onValueChange = {},
@@ -262,11 +249,8 @@ fun EnvioScreen(
                                 }
                             }
                         )
-
-                        // 🚚 Tipo de entrega
                         val tiposEntrega = listOf("Despacho a domicilio", "Retiro en tienda")
                         var expandirTipo by remember { mutableStateOf(false) }
-
                         ExposedDropdownMenuBox(
                             expanded = expandirTipo,
                             onExpandedChange = { expandirTipo = it }
@@ -296,7 +280,6 @@ fun EnvioScreen(
                                 }
                             }
                         }
-
                         OutlinedTextField(
                             value = metodoPago,
                             onValueChange = {},
@@ -320,10 +303,11 @@ fun EnvioScreen(
                             }
                             Spacer(Modifier.width(8.dp))
                             Button(
-                                // ---- MODIFICADO: onClick ----
+                                // ---- 🔔 ONCLICK MODIFICADO ----
                                 onClick = {
                                     coroutineScope.launch {
-                                        ordenViewModel.crearOrden(
+                                        // 1. Crear la orden y obtener su ID
+                                        val pedidoId = ordenViewModel.crearOrden(
                                             productos = productos,
                                             total = total,
                                             direccion = direccion,
@@ -331,13 +315,23 @@ fun EnvioScreen(
                                             fechaEntrega = fechaEntrega,
                                             tipoEntrega = tipoEntrega
                                         )
-                                        // Después de crear, vaciar el carrito y navegar
+
+                                        // 2. Vaciar el carrito
                                         carritoViewModel.vaciarCarrito()
+
+                                        // 3. Mostrar la notificación nativa
+                                        NotificationHelper.showOrderConfirmationNotification(
+                                            context,
+                                            pedidoId,
+                                            total
+                                        )
+
+                                        // 4. Navegar al historial
                                         onNavigateToHistorial()
                                     }
                                 },
                                 // ----------------------------
-                                enabled = isFormValid, // <-- Botón deshabilitado
+                                enabled = isFormValid,
                                 colors = ButtonDefaults.buttonColors(containerColor = marron),
                                 modifier = Modifier.weight(1f)
                             ) {
@@ -350,38 +344,34 @@ fun EnvioScreen(
         }
     }
 
-    // 📆 Selector de fecha con validación
+    // ... (DatePickerDialog y funciones helper: ProductoResumenItem, campoEnvio, formateaCLP) ...
+    // (Tu código existente para esto está bien)
     if (mostrarCalendario) {
         DatePickerDialog(
             onDismissRequest = { mostrarCalendario = false },
             confirmButton = {
                 TextButton(onClick = {
                     val millis = datePickerState.selectedDateMillis
-                    // La validación se asegura de que solo se acepte si es válida
                     if (isFechaValida(millis)) {
                         mostrarCalendario = false
                         val fecha = Date(millis!!)
                         val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                         fechaEntrega = formato.format(fecha)
                     }
-                }) {
-                    Text("Aceptar")
-                }
+                }) { Text("Aceptar") }
             },
             dismissButton = {
-                TextButton(onClick = { mostrarCalendario = false }) {
-                    Text("Cancelar")
-                }
+                TextButton(onClick = { mostrarCalendario = false }) { Text("Cancelar") }
             }
         ) {
             DatePicker(
                 state = datePickerState,
                 showModeToggle = true,
                 colors = DatePickerDefaults.colors(
-                    containerColor = Color(0xFFFDF8F4),            // fondo suave
-                    selectedDayContainerColor = Color(0xFF6D4C41), // marrón (día seleccionado)
+                    containerColor = Color(0xFFFDF8F4),
+                    selectedDayContainerColor = Color(0xFF6D4C41),
                     selectedDayContentColor = Color.White,
-                    disabledDayContentColor = Color(0xFFBDBDBD),   // días inactivos → grises
+                    disabledDayContentColor = Color(0xFFBDBDBD),
                     todayContentColor = Color(0xFF6D4C41),
                     weekdayContentColor = Color(0xFF5D4037),
                     subheadContentColor = Color(0xFF5D4037)

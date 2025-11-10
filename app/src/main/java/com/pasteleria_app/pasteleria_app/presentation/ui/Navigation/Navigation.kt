@@ -8,6 +8,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.pasteleria_app.pasteleria_app.presentation.ui.screens.*
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 // 🚀 Rutas principales
 sealed class Screen(val route: String) {
@@ -22,10 +24,10 @@ sealed class Screen(val route: String) {
     data object ResetPassword : Screen("reset_password")
     data object Profile : Screen("profile")
     data object Envio : Screen("envio")
-
-    // --- AÑADIDAS ---
     data object HistorialOrdenes : Screen("historial_ordenes")
     data object DetalleOrden : Screen("detalle_orden/{ordenId}")
+    // --- AÑADIDO ---
+    data object DetalleProducto : Screen("detalle_producto/{nombre}")
 }
 
 @Composable
@@ -68,11 +70,11 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
                 onOpenLogin = { navController.navigate(Screen.Login.route) },
                 onOpenPerfil = { navController.navigate(Screen.Profile.route) },
-                carritoViewModel = carritoViewModel // ✅ también aquí
+                carritoViewModel = carritoViewModel
             )
         }
 
-        // 🍰 Carta
+        // 🍰 Carta (MODIFICADO)
         composable(Screen.Carta.route) {
             CartaScreen(
                 onOpenHome = { navController.navigate(Screen.Home.route) },
@@ -82,6 +84,13 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
                 onOpenLogin = { navController.navigate(Screen.Login.route) },
                 onOpenPerfil = { navController.navigate(Screen.Profile.route) },
+                // --- AÑADIDO ---
+                onOpenDetalle = { nombre ->
+                    // Codificamos el nombre para que los espacios no rompan la URL
+                    val encodedNombre = URLEncoder.encode(nombre, StandardCharsets.UTF_8.name())
+                    navController.navigate("detalle_producto/$encodedNombre")
+                },
+                // ---------------
                 carritoViewModel = carritoViewModel
             )
         }
@@ -115,25 +124,18 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
             )
         }
 
-        // ---- MODIFICADO ----
+        // 🚚 Envio (Corregido: 'EnvioScreen' no necesita todas esas lambdas)
         composable(Screen.Envio.route) {
             EnvioScreen(
-                onOpenCarrito = { navController.popBackStack() }, // Vuelve a la pantalla anterior (Carrito)
+                onOpenCarrito = { navController.popBackStack() },
                 onNavigateToHistorial = {
                     navController.navigate(Screen.HistorialOrdenes.route) {
                         popUpTo(Screen.Home.route)
                     }
                 },
-                onOpenHome = { navController.navigate(Screen.Home.route) },
-                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
-                onOpenCarta = { navController.navigate(Screen.Carta.route) },
-                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
-                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
                 carritoViewModel = carritoViewModel
-
             )
         }
-        // --------------------
 
         composable(Screen.Login.route) {
             LoginScreen(
@@ -147,7 +149,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 carritoViewModel = carritoViewModel,
                 onLoginSuccess = {
                     navController.navigate(Screen.Profile.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true } // elimina login del stack
+                        popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }
             )
@@ -176,6 +178,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
             )
         }
 
+        // 👤 Profile (Corregido: Faltaba carritoViewModel)
         composable(Screen.Profile.route) {
             ProfileScreen(
                 onOpenHome = { navController.navigate(Screen.Home.route) },
@@ -188,14 +191,15 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
                 },
-                onOpenHistorial = { // <-- AÑADIDO
+                onOpenHistorial = {
                     navController.navigate(Screen.HistorialOrdenes.route)
-                }
+                },
+                carritoViewModel = carritoViewModel // <-- Añadido
             )
         }
-        // --------------------
 
 
+        // 🧾 Historial
         composable(Screen.HistorialOrdenes.route) {
             HistorialOrdenesScreen(
                 onNavigateToDetalle = { ordenId ->
@@ -207,10 +211,12 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
                 onOpenPerfil = { navController.navigate(Screen.Profile.route) },
+                onOpenLogin = { navController.navigate(Screen.Login.route) }, // <-- Corregido
                 carritoViewModel = carritoViewModel,
             )
         }
-        // --------------------
+
+        // 📄 Detalle de Orden (Corregido: Eliminado duplicado)
         composable(
             route = Screen.DetalleOrden.route, // "detalle_orden/{ordenId}"
             arguments = listOf(navArgument("ordenId") { type = NavType.StringType })
@@ -225,14 +231,37 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                     onOpenContacto = { navController.navigate(Screen.Contacto.route) },
                     onOpenPerfil = { navController.navigate(Screen.Profile.route) },
                     onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                    onOpenLogin = { navController.navigate(Screen.Login.route) }, // <-- Corregido
                     carritoViewModel = carritoViewModel
                 )
             } else {
-                // Si no hay ID, simplemente vuelve atrás
                 navController.popBackStack()
             }
         }
-        // --------------------
 
+        // --- 🎂 NUEVO: DETALLE DE PRODUCTO ---
+        composable(
+            route = Screen.DetalleProducto.route, // "detalle_producto/{nombre}"
+            arguments = listOf(navArgument("nombre") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val nombreProductoUrl = backStackEntry.arguments?.getString("nombre")
+            if (nombreProductoUrl != null) {
+                DetalleProductoScreen(
+                    nombreProductoUrl = nombreProductoUrl,
+                    // Pasamos todas las lambdas de navegación al Scaffold
+                    onOpenHome = { navController.navigate(Screen.Home.route) },
+                    onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                    onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                    onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                    onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                    onOpenLogin = { navController.navigate(Screen.Login.route) },
+                    onOpenPerfil = { navController.navigate(Screen.Profile.route) },
+                    carritoViewModel = carritoViewModel
+                )
+            } else {
+                navController.popBackStack()
+            }
+        }
+        // -------------------------
     }
 }

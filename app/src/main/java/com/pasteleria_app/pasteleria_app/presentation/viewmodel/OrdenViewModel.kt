@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
+import kotlin.random.Random
 
 @HiltViewModel
 class OrdenViewModel @Inject constructor(
@@ -30,7 +31,6 @@ class OrdenViewModel @Inject constructor(
     // Carga el historial de órdenes del usuario logueado
     fun cargarOrdenes() {
         viewModelScope.launch {
-            // ---- CORREGIDO: Se usa 'userEmailFlow' ----
             val correo = userPreferences.userEmailFlow.first() ?: return@launch
             ordenRepository.getOrdenes(correo).collect {
                 _ordenes.value = it
@@ -48,6 +48,7 @@ class OrdenViewModel @Inject constructor(
     }
 
     // Esta es la función que llamas desde EnvioScreen
+    // ---- MODIFICADO: Ahora devuelve un String (el ID del pedido) ----
     suspend fun crearOrden(
         productos: List<Producto>,
         total: Int,
@@ -55,9 +56,9 @@ class OrdenViewModel @Inject constructor(
         comuna: String,
         fechaEntrega: String, // Formato "dd/MM/yyyy"
         tipoEntrega: String
-    ) {
-        // ---- CORREGIDO: Se usa 'userEmailFlow' ----
-        val correo = userPreferences.userEmailFlow.first() ?: return
+    ): String { // <-- 1. CAMBIO EN LA FIRMA
+
+        val correo = userPreferences.userEmailFlow.first() ?: return "" // <-- 2. CAMBIO EN EL RETURN TEMPRANO
 
         // 1. Generar IDs únicos (simulados)
         val pedidoId = "PED-" + (100000..999999).random().toString()
@@ -91,5 +92,7 @@ class OrdenViewModel @Inject constructor(
 
         // 4. Guardar en el repositorio
         ordenRepository.crearOrden(nuevaOrden, correo)
+
+        return pedidoId // <-- 3. DEVUELVE EL ID GENERADO
     }
 }

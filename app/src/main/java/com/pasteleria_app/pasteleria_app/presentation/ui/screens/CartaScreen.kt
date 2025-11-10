@@ -41,6 +41,7 @@ fun CartaScreen(
     onOpenCarrito: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
+    onOpenDetalle: (String) -> Unit = {}, // <-- AÑADIDO
     carritoViewModel: CarritoViewModel
 ) {
     val crema = MaterialTheme.colorScheme.background
@@ -79,22 +80,26 @@ fun CartaScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(productos) { producto ->
-                    ProductoCard(producto, marron) {
-                        // ✅ Crear un Producto (Room model) a partir de ProductoCarta
-                        val productoEntity = Producto(
-                            id = 0, // Room lo autogenera
-                            nombre = producto.nombre,
-                            precio = producto.precio.replace("$", "").replace(".", "").toInt(),
-                            imagen = producto.imagen,
-                            cantidad = 1
-                        )
-
-                        carritoViewModel.agregarProducto(productoEntity)
-
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Producto agregado al carrito 🍰")
+                    ProductoCard(
+                        producto = producto,
+                        marron = marron,
+                        onVerDetalle = { // <-- MODIFICADO
+                            onOpenDetalle(producto.nombre) // Pasa el nombre para la navegación
+                        },
+                        onAddToCart = {
+                            val productoEntity = Producto(
+                                id = 0,
+                                nombre = producto.nombre,
+                                precio = producto.precio.replace("$", "").replace(".", "").toInt(),
+                                imagen = producto.imagen,
+                                cantidad = 1
+                            )
+                            carritoViewModel.agregarProducto(productoEntity)
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Producto agregado al carrito 🍰")
+                            }
                         }
-                    }
+                    )
                 }
             }
 
@@ -116,7 +121,12 @@ fun CartaScreen(
 }
 
 @Composable
-fun ProductoCard(producto: ProductoCarta, marron: Color, onAddToCart: () -> Unit) {
+fun ProductoCard(
+    producto: ProductoCarta,
+    marron: Color,
+    onVerDetalle: () -> Unit, // <-- MODIFICADO
+    onAddToCart: () -> Unit
+) {
     var agregado by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
@@ -132,6 +142,7 @@ fun ProductoCard(producto: ProductoCarta, marron: Color, onAddToCart: () -> Unit
             modifier = Modifier.padding(bottom = 12.dp)
         ) {
             Image(
+                // ... (código de imagen sin cambios)
                 painter = painterResource(id = producto.imagen),
                 contentDescription = producto.nombre,
                 modifier = Modifier
@@ -142,7 +153,7 @@ fun ProductoCard(producto: ProductoCarta, marron: Color, onAddToCart: () -> Unit
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-
+            // ... (textos de nombre y precio sin cambios)
             Text(
                 text = producto.nombre,
                 fontSize = 16.sp,
@@ -160,7 +171,7 @@ fun ProductoCard(producto: ProductoCarta, marron: Color, onAddToCart: () -> Unit
             )
 
             Button(
-                onClick = { /* TODO: Ver detalle */ },
+                onClick = onVerDetalle, // <-- MODIFICADO
                 colors = ButtonDefaults.buttonColors(containerColor = marron),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
