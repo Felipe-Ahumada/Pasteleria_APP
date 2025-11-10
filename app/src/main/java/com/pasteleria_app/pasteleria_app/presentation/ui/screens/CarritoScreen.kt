@@ -34,7 +34,11 @@ fun CarritoScreen(
     carritoViewModel: CarritoViewModel
 ) {
     val productos by carritoViewModel.productos.collectAsState()
-    val total = carritoViewModel.calcularTotal()
+
+    val total by remember(productos) {
+        derivedStateOf { carritoViewModel.calcularTotal() }
+    }
+
 
     PasteleriaScaffold(
         title = "Carrito de compras",

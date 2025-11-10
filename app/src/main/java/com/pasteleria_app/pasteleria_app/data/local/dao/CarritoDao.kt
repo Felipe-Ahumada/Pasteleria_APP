@@ -21,4 +21,7 @@ interface CarritoDao {
 
     @Query("DELETE FROM carrito")
     suspend fun vaciarCarrito()
+
+    @Query("SELECT * FROM carrito WHERE nombre = :nombre LIMIT 1")
+    suspend fun obtenerProductoPorNombre(nombre: String): ProductoEntity?
 }

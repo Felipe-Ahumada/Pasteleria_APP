@@ -18,8 +18,20 @@ class CarritoRepositoryImpl @Inject constructor( // 👈 ESTA LÍNEA ES LA CLAVE
         dao.obtenerProductos().map { lista -> lista.map { it.toDomain() } }
 
     override suspend fun agregarProducto(producto: Producto) {
-        dao.agregarProducto(ProductoEntity.fromDomain(producto))
+        val existente = dao.obtenerProductoPorNombre(producto.nombre)
+
+        if (existente != null) {
+            // Si el producto ya existe, actualiza su cantidad
+            val actualizado = existente.copy(
+                cantidad = existente.cantidad + producto.cantidad
+            )
+            dao.actualizarProducto(actualizado)
+        } else {
+            // Si es nuevo, agrégalo al carrito
+            dao.agregarProducto(ProductoEntity.fromDomain(producto))
+        }
     }
+
 
     override suspend fun actualizarCantidad(producto: Producto) {
         dao.actualizarProducto(ProductoEntity.fromDomain(producto))
