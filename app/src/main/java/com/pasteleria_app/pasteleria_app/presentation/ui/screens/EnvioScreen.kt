@@ -19,16 +19,25 @@ import com.pasteleria_app.pasteleria_app.domain.model.Producto
 import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaScaffold
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.UsuarioViewModel
+import com.pasteleria_app.pasteleria_app.presentation.viewmodel.OrdenViewModel
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EnvioScreen(
+    onOpenHome: () -> Unit = {},
+    onOpenNosotros: () -> Unit = {},
+    onOpenCarta: () -> Unit = {},
+    onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
-    onConfirmarPago: () -> Unit = {},
+    onOpenLogin: () -> Unit = {},
+    onOpenPerfil: () -> Unit = {},
+    onNavigateToHistorial: () -> Unit = {}, // <-- MODIFICADO
     carritoViewModel: CarritoViewModel = hiltViewModel(),
-    usuarioViewModel: UsuarioViewModel = hiltViewModel()
+    usuarioViewModel: UsuarioViewModel = hiltViewModel(),
+    ordenViewModel: OrdenViewModel = hiltViewModel() // <-- AÑADIDO
 ) {
     val productos by carritoViewModel.productos.collectAsState()
     val total = carritoViewModel.calcularTotal()
@@ -117,9 +126,17 @@ fun EnvioScreen(
 
     val usuarioLogueado = !correo.isNullOrBlank()
 
+    val coroutineScope = rememberCoroutineScope() // <-- AÑADIDO
+
     PasteleriaScaffold(
         title = "Procesamiento de Pedido",
+        onOpenHome = onOpenHome,
+        onOpenNosotros = onOpenNosotros,
+        onOpenCarta = onOpenCarta,
+        onOpenContacto = onOpenContacto,
         onOpenCarrito = onOpenCarrito,
+        onOpenLogin = onOpenLogin,
+        onOpenPerfil = onOpenPerfil,
         carritoViewModel = carritoViewModel
     ) { padding ->
         LazyColumn(
@@ -303,7 +320,23 @@ fun EnvioScreen(
                             }
                             Spacer(Modifier.width(8.dp))
                             Button(
-                                onClick = { onConfirmarPago() },
+                                // ---- MODIFICADO: onClick ----
+                                onClick = {
+                                    coroutineScope.launch {
+                                        ordenViewModel.crearOrden(
+                                            productos = productos,
+                                            total = total,
+                                            direccion = direccion,
+                                            comuna = comuna,
+                                            fechaEntrega = fechaEntrega,
+                                            tipoEntrega = tipoEntrega
+                                        )
+                                        // Después de crear, vaciar el carrito y navegar
+                                        carritoViewModel.vaciarCarrito()
+                                        onNavigateToHistorial()
+                                    }
+                                },
+                                // ----------------------------
                                 enabled = isFormValid, // <-- Botón deshabilitado
                                 colors = ButtonDefaults.buttonColors(containerColor = marron),
                                 modifier = Modifier.weight(1f)

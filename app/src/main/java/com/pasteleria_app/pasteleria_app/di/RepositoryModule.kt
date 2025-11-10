@@ -25,4 +25,6 @@ abstract class RepositoryModule {
     abstract fun bindUsuarioRepository(
         impl: UsuarioRepositoryImpl
     ): UsuarioRepository
+
+    // Eliminamos los @Provides de aquí
 }

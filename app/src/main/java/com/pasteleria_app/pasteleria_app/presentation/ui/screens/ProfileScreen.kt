@@ -46,6 +46,7 @@ fun ProfileScreen(
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
     onLogout: () -> Unit = {},
+    onOpenHistorial: () -> Unit = {}, // <-- Ya está aquí
     carritoViewModel: CarritoViewModel = hiltViewModel()
 ) {
     val usuarioViewModel: UsuarioViewModel = hiltViewModel()
@@ -188,13 +189,15 @@ fun ProfileScreen(
                     Text("Nombre: $nombreUsuario", fontSize = 18.sp, fontWeight = FontWeight.Medium)
                     Text("Correo: $correoUsuario", fontSize = 16.sp, color = Color.DarkGray)
 
+                    // ---- MODIFICADO ----
                     OutlinedButton(
-                        onClick = { /* TODO: ver pedidos */ },
+                        onClick = onOpenHistorial, // <-- Se usa el parámetro
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth(0.7f)
                     ) {
                         Text("Mis pedidos", fontWeight = FontWeight.Bold)
                     }
+                    // --------------------
 
                     Button(
                         onClick = {

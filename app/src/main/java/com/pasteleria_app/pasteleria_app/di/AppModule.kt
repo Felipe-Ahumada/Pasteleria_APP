@@ -5,8 +5,11 @@ import androidx.room.Room
 import com.pasteleria_app.pasteleria_app.data.local.database.AppDatabase
 import com.pasteleria_app.pasteleria_app.data.local.dao.CarritoDao
 import com.pasteleria_app.pasteleria_app.data.local.dao.CarritoUsuarioDao
+import com.pasteleria_app.pasteleria_app.data.local.dao.OrdenDao
 import com.pasteleria_app.pasteleria_app.data.local.dao.UsuarioDao
 import com.pasteleria_app.pasteleria_app.data.preferences.UserPreferences
+import com.pasteleria_app.pasteleria_app.data.repository.OrdenRepositoryImpl
+import com.pasteleria_app.pasteleria_app.domain.repository.OrdenRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -41,4 +44,13 @@ object AppModule {
     fun provideUserPreferences(
         @ApplicationContext context: Context
     ): UserPreferences = UserPreferences(context)
+
+    @Provides
+    fun provideOrdenDao(db: AppDatabase): OrdenDao = db.ordenDao()
+
+    @Provides
+    @Singleton
+    fun provideOrdenRepository(dao: OrdenDao): OrdenRepository {
+        return OrdenRepositoryImpl(dao)
+    }
 }

@@ -1,12 +1,13 @@
 package com.pasteleria_app.pasteleria_app.presentation.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.pasteleria_app.pasteleria_app.presentation.ui.screens.*
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
-import androidx.compose.material3.Text
 
 // 🚀 Rutas principales
 sealed class Screen(val route: String) {
@@ -19,10 +20,12 @@ sealed class Screen(val route: String) {
     data object Login : Screen("login")
     data object Register : Screen("register")
     data object ResetPassword : Screen("reset_password")
-
     data object Profile : Screen("profile")
-
     data object Envio : Screen("envio")
+
+    // --- AÑADIDAS ---
+    data object HistorialOrdenes : Screen("historial_ordenes")
+    data object DetalleOrden : Screen("detalle_orden/{ordenId}")
 }
 
 @Composable
@@ -111,13 +114,27 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 carritoViewModel = carritoViewModel
             )
         }
+
+        // ---- MODIFICADO ----
         composable(Screen.Envio.route) {
             EnvioScreen(
-                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
-                onConfirmarPago = { /* Aquí más adelante puedes ir a una pantalla de confirmación o pago */ },
+                onOpenCarrito = { navController.popBackStack() }, // Vuelve a la pantalla anterior (Carrito)
+                onNavigateToHistorial = {
+                    navController.navigate(Screen.HistorialOrdenes.route) {
+                        popUpTo(Screen.Home.route)
+                    }
+                },
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
                 carritoViewModel = carritoViewModel
+
             )
         }
+        // --------------------
+
         composable(Screen.Login.route) {
             LoginScreen(
                 onOpenHome = { navController.navigate(Screen.Home.route) },
@@ -158,6 +175,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 carritoViewModel = carritoViewModel
             )
         }
+
         composable(Screen.Profile.route) {
             ProfileScreen(
                 onOpenHome = { navController.navigate(Screen.Home.route) },
@@ -169,9 +187,52 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
+                },
+                onOpenHistorial = { // <-- AÑADIDO
+                    navController.navigate(Screen.HistorialOrdenes.route)
                 }
             )
         }
+        // --------------------
+
+
+        composable(Screen.HistorialOrdenes.route) {
+            HistorialOrdenesScreen(
+                onNavigateToDetalle = { ordenId ->
+                    navController.navigate("detalle_orden/$ordenId")
+                },
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
+                carritoViewModel = carritoViewModel,
+            )
+        }
+        // --------------------
+        composable(
+            route = Screen.DetalleOrden.route, // "detalle_orden/{ordenId}"
+            arguments = listOf(navArgument("ordenId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val ordenId = backStackEntry.arguments?.getString("ordenId")
+            if (ordenId != null) {
+                DetalleOrdenScreen(
+                    ordenId = ordenId,
+                    onOpenHome = { navController.navigate(Screen.Home.route) },
+                    onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                    onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                    onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                    onOpenPerfil = { navController.navigate(Screen.Profile.route) },
+                    onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                    carritoViewModel = carritoViewModel
+                )
+            } else {
+                // Si no hay ID, simplemente vuelve atrás
+                navController.popBackStack()
+            }
+        }
+        // --------------------
 
     }
 }

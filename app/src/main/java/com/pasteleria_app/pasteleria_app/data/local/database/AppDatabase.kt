@@ -7,16 +7,21 @@ import com.pasteleria_app.pasteleria_app.data.local.dao.CarritoUsuarioDao
 import com.pasteleria_app.pasteleria_app.data.local.dao.UsuarioDao
 import com.pasteleria_app.pasteleria_app.data.local.entities.ProductoEntity
 import com.pasteleria_app.pasteleria_app.data.local.entities.UsuarioEntity
-import com.pasteleria_app.pasteleria_app.data.local.entities.CarritoUsuarioEntity // 👈 agrega esto
+import com.pasteleria_app.pasteleria_app.data.local.entities.CarritoUsuarioEntity
+import com.pasteleria_app.pasteleria_app.data.local.entities.OrdenItemEntity
+import com.pasteleria_app.pasteleria_app.data.local.entities.OrdenEntity
+import com.pasteleria_app.pasteleria_app.data.local.dao.OrdenDao
 
 @Database(
-    entities = [ProductoEntity::class, UsuarioEntity::class, CarritoUsuarioEntity::class],
-    version = 7,
+    entities = [ProductoEntity::class, UsuarioEntity::class, CarritoUsuarioEntity::class, OrdenEntity::class,
+        OrdenItemEntity::class],
+    version = 8,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun carritoDao(): CarritoDao
     abstract fun usuarioDao(): UsuarioDao
-    abstract fun carritoUsuarioDao(): CarritoUsuarioDao // ✅ necesario
+    abstract fun carritoUsuarioDao(): CarritoUsuarioDao
+    abstract fun ordenDao(): OrdenDao
 }
 
