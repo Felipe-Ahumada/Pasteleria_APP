@@ -48,13 +48,14 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
     implementation("androidx.activity:activity-compose:1.9.3")
 
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
     // 🎨 Jetpack Compose
     implementation(platform("androidx.compose:compose-bom:2024.09.02"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
@@ -67,7 +68,7 @@ dependencies {
 
     // ⚙️ Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1") // ✅ VERSIÓN ALINEADA
 
     // 🗄️ ROOM (Base de datos local)
     implementation("androidx.room:room-runtime:2.6.1")
@@ -88,5 +89,4 @@ dependencies {
 
     // Jetpack DataStore (Preferences)
     implementation("androidx.datastore:datastore-preferences:1.1.1")
-
 }

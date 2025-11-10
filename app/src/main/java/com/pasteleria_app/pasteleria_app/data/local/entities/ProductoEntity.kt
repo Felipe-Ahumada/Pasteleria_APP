@@ -26,7 +26,7 @@ data class ProductoEntity(
             id = producto.id,
             nombre = producto.nombre,
             precio = producto.precio,
-            imagen = producto.imagen,
+            imagen = producto.imagen, // ✅ coincide con tipo String?
             cantidad = producto.cantidad
         )
     }

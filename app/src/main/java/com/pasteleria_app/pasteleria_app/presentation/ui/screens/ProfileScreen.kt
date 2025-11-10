@@ -8,8 +8,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaScaffold
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.UsuarioViewModel
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 @Composable
@@ -32,7 +40,7 @@ fun ProfileScreen(
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
     onLogout: () -> Unit = {},
-    carritoViewModel: CarritoViewModel = hiltViewModel() // ✅ agregado aquí
+    carritoViewModel: CarritoViewModel = hiltViewModel()
 ) {
     val usuarioViewModel: UsuarioViewModel = hiltViewModel()
     val nombreUsuario by usuarioViewModel.usuarioActual.collectAsState(initial = "")
@@ -48,7 +56,7 @@ fun ProfileScreen(
         onOpenCarta = onOpenCarta,
         onOpenContacto = onOpenContacto,
         onOpenCarrito = onOpenCarrito,
-        carritoViewModel = carritoViewModel // ✅ se pasa aquí
+        carritoViewModel = carritoViewModel
     ) { padding ->
         Box(
             modifier = Modifier
@@ -71,14 +79,8 @@ fun ProfileScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(
-                        text = "Mi Perfil",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = marron
-                    )
+                    Text("Mi Perfil", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = marron)
 
-                    // 📷 Imagen o inicial del usuario
                     Box(
                         modifier = Modifier
                             .size(120.dp)
@@ -87,7 +89,6 @@ fun ProfileScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         val inicial = nombreUsuario?.firstOrNull()?.uppercaseChar()?.toString()
-
                         if (!inicial.isNullOrEmpty()) {
                             Text(
                                 text = inicial,
@@ -98,43 +99,18 @@ fun ProfileScreen(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.AccountCircle,
-                                contentDescription = "Foto de perfil",
-                                tint = Color(0xFF8B4513),
+                                contentDescription = null,
+                                tint = marron,
                                 modifier = Modifier.size(100.dp)
                             )
                         }
                     }
 
-                    // Botones cambiar y quitar foto (futuros)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(
-                            onClick = { /* TODO: cambiar foto */ },
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.height(40.dp)
-                        ) {
-                            Icon(Icons.Default.PhotoCamera, contentDescription = null)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Cambiar foto")
-                        }
-                        OutlinedButton(
-                            onClick = { /* TODO: eliminar foto */ },
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
-                            modifier = Modifier.height(40.dp)
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Quitar foto", color = Color.Red)
-                        }
-                    }
-
                     Divider(thickness = 1.dp, color = Color.LightGray)
 
-                    // Datos del usuario
                     Text("Nombre: $nombreUsuario", fontSize = 18.sp, fontWeight = FontWeight.Medium)
                     Text("Correo: $correoUsuario", fontSize = 16.sp, color = Color.DarkGray)
 
-                    // Botón "Mis pedidos"
                     OutlinedButton(
                         onClick = { /* TODO: ver pedidos */ },
                         shape = RoundedCornerShape(12.dp),
@@ -143,11 +119,24 @@ fun ProfileScreen(
                         Text("Mis pedidos", fontWeight = FontWeight.Bold)
                     }
 
-                    // Botón "Cerrar sesión"
+                    // ✅ Cerrar sesión guardando carrito
                     Button(
                         onClick = {
                             scope.launch {
+                                // ✅ Obtenemos el valor actual de usuarioCorreo de forma segura
+                                val correoActual = usuarioViewModel.usuarioCorreo.firstOrNull() ?: ""
+
+                                if (correoActual.isNotBlank()) {
+                                    // 1️⃣ Guardamos snapshot del carrito
+                                    carritoViewModel.guardarCarritoUsuario(correoActual)
+                                }
+
+                                // 2️⃣ Vaciamos carrito de sesión
+                                carritoViewModel.vaciarCarrito()
+
+                                // 3️⃣ Limpiamos prefs (nombre + correo)
                                 usuarioViewModel.cerrarSesion()
+
                                 onLogout()
                             }
                         },
@@ -161,6 +150,7 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Cerrar sesión", color = Color.White, fontWeight = FontWeight.Bold)
                     }
+
                 }
             }
         }

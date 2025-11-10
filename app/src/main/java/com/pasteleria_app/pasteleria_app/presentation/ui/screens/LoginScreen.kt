@@ -30,21 +30,19 @@ fun LoginScreen(
     onOpenCarta: () -> Unit = {},
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
-    onLoginSuccess: () -> Unit = {}, // Navega al perfil
+    onLoginSuccess: () -> Unit = {},
     onNavigateToRegister: () -> Unit = {},
     onForgotPassword: () -> Unit = {},
-    carritoViewModel: CarritoViewModel? = null
+    carritoViewModel: CarritoViewModel = hiltViewModel()
 ) {
     val marron = MaterialTheme.colorScheme.primary
     val crema = MaterialTheme.colorScheme.background
-
     val usuarioViewModel: UsuarioViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
     var correo by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var recordar by remember { mutableStateOf(false) }
 
     PasteleriaScaffold(
         title = "Iniciar Sesión",
@@ -64,37 +62,24 @@ fun LoginScreen(
             contentAlignment = Alignment.Center
         ) {
             Card(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth(0.9f).padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(4.dp)
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
+                    modifier = Modifier.fillMaxWidth().padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // 👤 Icono superior
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Icono usuario",
+                        contentDescription = null,
                         tint = marron,
                         modifier = Modifier.size(64.dp)
                     )
 
-                    // 🧁 Título
-                    Text(
-                        text = "Iniciar Sesión",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = marron,
-                        textAlign = TextAlign.Center
-                    )
+                    Text("Iniciar Sesión", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = marron)
 
-                    // 📧 Campo de correo
                     OutlinedTextField(
                         value = correo,
                         onValueChange = { correo = it },
@@ -104,7 +89,6 @@ fun LoginScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // 🔒 Campo de contraseña
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
@@ -115,30 +99,6 @@ fun LoginScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // ☑️ Recordarme + ¿Olvidaste tu contraseña?
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = recordar,
-                                onCheckedChange = { recordar = it },
-                                colors = CheckboxDefaults.colors(checkedColor = marron)
-                            )
-                            Text("Recordarme", color = Color(0xFF3E2E20))
-                        }
-
-                        Text(
-                            text = "¿Olvidaste tu contraseña?",
-                            color = marron,
-                            fontSize = 14.sp,
-                            modifier = Modifier.clickable { onForgotPassword() }
-                        )
-                    }
-
-                    // 🔘 Botón principal — validación de login
                     Button(
                         onClick = {
                             scope.launch {
@@ -146,15 +106,18 @@ fun LoginScreen(
                                     correo.isEmpty() || password.isEmpty() -> {
                                         snackbarHostState.showSnackbar("Completa todos los campos ❗")
                                     }
-
                                     else -> {
                                         val valido = usuarioViewModel.validarUsuario(correo, password)
                                         if (valido) {
+                                            // cargar carrito del usuario que acaba de iniciar sesión
+                                            carritoViewModel?.cargarCarritoUsuario(correo)
+
                                             snackbarHostState.showSnackbar("Bienvenido de nuevo 🎂")
-                                            onLoginSuccess()
+                                            onLoginSuccess() // → navega a Profile (o a donde definiste)
                                         } else {
-                                            snackbarHostState.showSnackbar("Correo o contraseña incorrectos ❌")
+                                            snackbarHostState.showSnackbar("Credenciales incorrectas ❌")
                                         }
+
                                     }
                                 }
                             }
@@ -166,32 +129,9 @@ fun LoginScreen(
                         Text("Ingresar", color = Color.White, fontWeight = FontWeight.Bold)
                     }
 
-                    // 👥 Botones secundarios
-                    Button(
-                        onClick = { /* TODO: login vendedor */ },
-                        colors = ButtonDefaults.buttonColors(containerColor = marron),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().height(50.dp)
-                    ) {
-                        Text("Entrar como Vendedor", color = Color.White, fontWeight = FontWeight.Bold)
-                    }
-
-                    Button(
-                        onClick = { /* TODO: login admin */ },
-                        colors = ButtonDefaults.buttonColors(containerColor = marron),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().height(50.dp)
-                    ) {
-                        Text("Entrar como Administrador", color = Color.White, fontWeight = FontWeight.Bold)
-                    }
-
                     Divider(color = Color.LightGray, modifier = Modifier.padding(vertical = 8.dp))
 
-                    // 🔗 Registro
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                         Text("¿No tienes cuenta?", color = Color.DarkGray)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
@@ -204,12 +144,9 @@ fun LoginScreen(
                 }
             }
 
-            // 📢 Snackbar inferior
             SnackbarHost(
                 hostState = snackbarHostState,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 20.dp)
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp)
             )
         }
     }

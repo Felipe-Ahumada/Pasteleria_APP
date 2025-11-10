@@ -7,7 +7,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +21,7 @@ import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaSc
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.UsuarioViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.AccountCircle
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
@@ -65,7 +65,7 @@ fun RegisterScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Default.PersonAdd,
+                    imageVector = Icons.Default.AccountCircle,
                     contentDescription = "Crear cuenta",
                     tint = marron,
                     modifier = Modifier.size(50.dp)

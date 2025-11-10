@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.pasteleria_app.pasteleria_app.domain.model.Producto
 import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaScaffold
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
-import kotlinx.coroutines.flow.collectLatest
+import com.pasteleria_app.pasteleria_app.R
 
 @Composable
 fun CarritoScreen(
@@ -33,7 +33,6 @@ fun CarritoScreen(
     onOpenPerfil: () -> Unit = {},
     carritoViewModel: CarritoViewModel
 ) {
-    // Observar productos en tiempo real (desde Room)
     val productos by carritoViewModel.productos.collectAsState()
     val total = carritoViewModel.calcularTotal()
 
@@ -44,11 +43,10 @@ fun CarritoScreen(
         onOpenCarta = onOpenCarta,
         onOpenContacto = onOpenContacto,
         onOpenCarrito = onOpenCarrito,
-        onOpenLogin = { onOpenLogin() },
+        onOpenLogin = onOpenLogin,
         onOpenPerfil = onOpenPerfil,
         carritoViewModel = carritoViewModel
     ) { padding ->
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -170,8 +168,11 @@ fun CarritoItem(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1.5f)
         ) {
+            // ✅ Imagen segura (usa placeholder si no hay imagen)
+            val imagenId = if (producto.imagen != 0) producto.imagen else R.drawable.logo_landing
+
             Image(
-                painter = painterResource(id = producto.imagen),
+                painter = painterResource(id = imagenId),
                 contentDescription = producto.nombre,
                 modifier = Modifier
                     .size(80.dp)

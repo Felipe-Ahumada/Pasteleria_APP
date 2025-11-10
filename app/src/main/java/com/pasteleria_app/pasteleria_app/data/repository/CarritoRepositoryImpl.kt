@@ -6,8 +6,11 @@ import com.pasteleria_app.pasteleria_app.domain.model.Producto
 import com.pasteleria_app.pasteleria_app.domain.repository.CarritoRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class CarritoRepositoryImpl(
+@Singleton
+class CarritoRepositoryImpl @Inject constructor( // 👈 ESTA LÍNEA ES LA CLAVE
     private val dao: CarritoDao
 ) : CarritoRepository {
 

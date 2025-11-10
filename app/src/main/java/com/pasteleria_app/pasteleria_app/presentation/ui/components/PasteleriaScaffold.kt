@@ -7,7 +7,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,9 +18,22 @@ import com.pasteleria_app.pasteleria_app.R
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DrawerValue
 import androidx.compose.ui.text.font.FontWeight
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.UsuarioViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -164,7 +176,10 @@ fun DrawerContent(
         }
 
         Spacer(modifier = Modifier.weight(1f))
-        Divider(color = Color.White.copy(alpha = 0.3f))
+        Divider(
+            color = Color.White.copy(alpha = 0.3f),
+            thickness = 1.dp
+        )
 
         if (nombreUsuario != null) {
             // 👤 Usuario logueado
