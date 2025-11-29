@@ -61,11 +61,12 @@ class OrdenViewModel @Inject constructor(
         // ---- MODIFICADO AQUÍ ----
         val items = productos.map {
             OrdenItem(
+                productoId = it.productoId, // <-- AÑADIDO
                 nombreProducto = it.nombre,
                 cantidad = it.cantidad,
                 precioUnitario = it.precio,
                 subtotal = it.precio * it.cantidad,
-                mensaje = it.mensaje // <-- AÑADIDO: Se pasa el mensaje
+                mensaje = it.mensaje
             )
         }
         // -------------------------

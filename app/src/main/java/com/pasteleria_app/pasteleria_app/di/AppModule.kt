@@ -50,7 +50,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideOrdenRepository(dao: OrdenDao): OrdenRepository {
-        return OrdenRepositoryImpl(dao)
+    fun provideOrdenRepository(
+        dao: OrdenDao,
+        apiService: com.pasteleria_app.pasteleria_app.data.network.ApiService,
+        userPreferences: UserPreferences
+    ): OrdenRepository {
+        return OrdenRepositoryImpl(dao, apiService, userPreferences)
     }
 }

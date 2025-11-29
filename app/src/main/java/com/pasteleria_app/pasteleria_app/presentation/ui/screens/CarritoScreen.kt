@@ -72,7 +72,7 @@ fun CarritoScreen(
                     Text("Cantidad", fontWeight = FontWeight.Bold, color = Color(0xFF3E2E20))
                     Text("Precio", fontWeight = FontWeight.Bold, color = Color(0xFF3E2E20))
                 }
-                Divider(color = Color(0xFFE0D8C6), thickness = 1.dp)
+                HorizontalDivider(color = Color(0xFFE0D8C6), thickness = 1.dp)
             }
 
             // 🧁 Productos del carrito
@@ -83,7 +83,7 @@ fun CarritoScreen(
                     onDecrement = { carritoViewModel.disminuirCantidad(producto) },
                     onRemove = { carritoViewModel.eliminarProducto(producto) }
                 )
-                Divider(color = Color(0xFFE0D8C6), thickness = 1.dp)
+                HorizontalDivider(color = Color(0xFFE0D8C6), thickness = 1.dp)
             }
 
             // 🗑️ Vaciar carrito
@@ -128,7 +128,7 @@ fun CarritoScreen(
                             Text("—", color = Color.Gray)
                         }
 
-                        Divider(color = Color(0xFFE0D8C6))
+                        HorizontalDivider(color = Color(0xFFE0D8C6))
 
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Total", fontWeight = FontWeight.Bold)
@@ -181,14 +181,27 @@ fun CarritoItem(
         ) {
             val imagenId = if (producto.imagen != 0) producto.imagen else R.drawable.logo_landing
 
-            Image(
-                painter = painterResource(id = imagenId),
-                contentDescription = producto.nombre,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
+            if (producto.imagenUrl != null) {
+                coil.compose.AsyncImage(
+                    model = producto.imagenUrl,
+                    contentDescription = producto.nombre,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(R.drawable.logo_landing),
+                    error = painterResource(R.drawable.logo_landing)
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = imagenId),
+                    contentDescription = producto.nombre,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
             Spacer(Modifier.width(10.dp))
 
@@ -223,7 +236,7 @@ fun CarritoItem(
         ) {
             OutlinedButton(
                 onClick = onDecrement,
-                border = ButtonDefaults.outlinedButtonBorder,
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF3E2E20)),
                 contentPadding = PaddingValues(0.dp),
                 modifier = Modifier.size(36.dp)
             ) {
@@ -238,7 +251,7 @@ fun CarritoItem(
 
             OutlinedButton(
                 onClick = onIncrement,
-                border = ButtonDefaults.outlinedButtonBorder,
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF3E2E20)),
                 contentPadding = PaddingValues(0.dp),
                 modifier = Modifier.size(36.dp)
             ) {
@@ -256,7 +269,7 @@ fun CarritoItem(
 
             OutlinedButton(
                 onClick = onRemove,
-                border = ButtonDefaults.outlinedButtonBorder,
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFD32F2F)),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD32F2F)),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.padding(top = 6.dp)

@@ -41,18 +41,17 @@ fun CartaScreen(
     onOpenCarrito: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
-    onOpenDetalle: (String) -> Unit = {}, // <-- AÑADIDO
-    carritoViewModel: CarritoViewModel
+    onOpenDetalle: (String) -> Unit = {},
+    carritoViewModel: CarritoViewModel,
+    productoViewModel: com.pasteleria_app.pasteleria_app.presentation.viewmodel.ProductoViewModel = androidx.hilt.navigation.compose.hiltViewModel()
 ) {
     val crema = MaterialTheme.colorScheme.background
     val marron = MaterialTheme.colorScheme.primary
 
-    val productos = listOf(
-        ProductoCarta("Torta Cuadrada de Chocolate", "$45.000", R.drawable.torta_cuadrada_de_chocolate),
-        ProductoCarta("Torta Circular de Vainilla", "$40.000", R.drawable.torta_circular_de_vainilla),
-        ProductoCarta("Tiramisú Clásico", "$5.500", R.drawable.tiramisu_clasico),
-        ProductoCarta("Cheesecake Sin Azúcar", "$47.000", R.drawable.cheesecake_sin_azucar)
-    )
+    // Observar productos del backend
+    val productosBackend by productoViewModel.productos.collectAsState()
+    val isLoading by productoViewModel.isLoading.collectAsState()
+    val error by productoViewModel.error.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -69,37 +68,50 @@ fun CartaScreen(
         carritoViewModel = carritoViewModel
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(crema)
-                    .padding(padding),
-                contentPadding = PaddingValues(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(productos) { producto ->
-                    ProductoCard(
-                        producto = producto,
-                        marron = marron,
-                        onVerDetalle = { // <-- MODIFICADO
-                            onOpenDetalle(producto.nombre) // Pasa el nombre para la navegación
-                        },
-                        onAddToCart = {
-                            val productoEntity = Producto(
-                                id = 0,
-                                nombre = producto.nombre,
-                                precio = producto.precio.replace("$", "").replace(".", "").toInt(),
-                                imagen = producto.imagen,
-                                cantidad = 1
-                            )
-                            carritoViewModel.agregarProducto(productoEntity)
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Producto agregado al carrito 🍰")
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (error != null) {
+                Text(
+                    text = error ?: "Error desconocido",
+                    color = Color.Red,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(crema)
+                        .padding(padding),
+                    contentPadding = PaddingValues(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(productosBackend) { producto ->
+                        ProductoCard(
+                            producto = producto,
+                            marron = marron,
+                            onVerDetalle = {
+                                onOpenDetalle(producto.nombre)
+                            },
+                            onAddToCart = {
+                                // Mapear de Backend (data) a Domain (local/cart)
+                                val productoCart = com.pasteleria_app.pasteleria_app.domain.model.Producto(
+                                    id = 0,
+                                    productoId = producto.id ?: 0,
+                                    nombre = producto.nombre,
+                                    precio = producto.precio.toInt(),
+                                    imagen = 0, // Placeholder
+                                    imagenUrl = producto.imagenPrincipal,
+                                    cantidad = 1
+                                )
+                                carritoViewModel.agregarProducto(productoCart)
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Producto agregado al carrito 🍰")
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
 
@@ -122,9 +134,9 @@ fun CartaScreen(
 
 @Composable
 fun ProductoCard(
-    producto: ProductoCarta,
+    producto: com.pasteleria_app.pasteleria_app.data.model.Producto,
     marron: Color,
-    onVerDetalle: () -> Unit, // <-- MODIFICADO
+    onVerDetalle: () -> Unit,
     onAddToCart: () -> Unit
 ) {
     var agregado by remember { mutableStateOf(false) }
@@ -141,19 +153,20 @@ fun ProductoCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(bottom = 12.dp)
         ) {
-            Image(
-                // ... (código de imagen sin cambios)
-                painter = painterResource(id = producto.imagen),
+            coil.compose.AsyncImage(
+                model = producto.imagenPrincipal,
                 contentDescription = producto.nombre,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.torta_cuadrada_de_chocolate), // Fallback
+                error = painterResource(R.drawable.torta_cuadrada_de_chocolate) // Fallback
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-            // ... (textos de nombre y precio sin cambios)
+
             Text(
                 text = producto.nombre,
                 fontSize = 16.sp,
@@ -164,14 +177,14 @@ fun ProductoCard(
             )
 
             Text(
-                text = producto.precio,
+                text = "$${producto.precio}",
                 fontSize = 15.sp,
                 color = Color(0xFF3E2E20),
                 modifier = Modifier.padding(bottom = 10.dp)
             )
 
             Button(
-                onClick = onVerDetalle, // <-- MODIFICADO
+                onClick = onVerDetalle,
                 colors = ButtonDefaults.buttonColors(containerColor = marron),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier

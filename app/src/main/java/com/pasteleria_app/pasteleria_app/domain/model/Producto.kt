@@ -7,9 +7,11 @@ import androidx.room.PrimaryKey
 data class Producto(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
+    val productoId: Long = 0, // <-- AÑADIDO: ID del producto en el backend
     val nombre: String,
     val precio: Int,
     val imagen: Int = 0,
+    val imagenUrl: String? = null,
     var cantidad: Int = 1,
-    var mensaje: String? = null // <-- AÑADIDO: Para guardar "¡Feliz Cumple!"
+    var mensaje: String? = null
 )

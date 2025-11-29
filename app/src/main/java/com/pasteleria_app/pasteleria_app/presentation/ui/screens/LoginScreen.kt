@@ -107,7 +107,7 @@ fun LoginScreen(
                                         snackbarHostState.showSnackbar("Completa todos los campos ❗")
                                     }
                                     else -> {
-                                        val valido = usuarioViewModel.validarUsuario(correo, password)
+                                        val valido = usuarioViewModel.validarUsuario(correo.trim(), password.trim())
                                         if (valido) {
                                             // cargar carrito del usuario que acaba de iniciar sesión
                                             carritoViewModel?.cargarCarritoUsuario(correo)

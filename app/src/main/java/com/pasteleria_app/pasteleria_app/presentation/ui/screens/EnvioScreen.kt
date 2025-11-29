@@ -111,13 +111,11 @@ fun EnvioScreen(
     LaunchedEffect(correo) {
         val correoActual = correo ?: ""
         if (correoActual.isNotBlank()) {
-            val usuario = usuarioViewModel.obtenerUsuarioPorCorreo(correoActual)
+            val usuario = usuarioViewModel.obtenerDatosUsuario()
             usuario?.let { u ->
-                runUsuario = u.rut.orEmpty()
-                nombres = listOfNotNull(u.primerNombre, u.segundoNombre?.takeIf { it.isNotBlank() })
-                    .joinToString(" ")
-                apellidos = listOfNotNull(u.apellidoPaterno, u.apellidoMaterno?.takeIf { it.isNotBlank() })
-                    .joinToString(" ")
+                runUsuario = u.run
+                nombres = u.nombre
+                apellidos = u.apellidos
                 direccion = u.direccion.orEmpty()
             }
         }
@@ -163,7 +161,7 @@ fun EnvioScreen(
                         productos.forEach { producto ->
                             ProductoResumenItem(producto) // <-- Este Composable se actualiza abajo
                         }
-                        Divider(color = Color.LightGray)
+                        HorizontalDivider(color = Color.LightGray)
                         Row(
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween

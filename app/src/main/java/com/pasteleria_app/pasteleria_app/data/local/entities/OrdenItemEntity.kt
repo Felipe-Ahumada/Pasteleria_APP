@@ -10,7 +10,9 @@ import androidx.room.PrimaryKey
         parentColumns = ["id"],
         childColumns = ["ordenId"],
         onDelete = ForeignKey.CASCADE
-    )])
+    )],
+    indices = [androidx.room.Index(value = ["ordenId"])]
+)
 data class OrdenItemEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val ordenId: String,

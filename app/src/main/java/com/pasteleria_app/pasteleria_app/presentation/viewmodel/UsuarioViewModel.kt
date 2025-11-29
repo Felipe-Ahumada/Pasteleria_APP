@@ -2,22 +2,31 @@ package com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pasteleria_app.pasteleria_app.data.local.entities.UsuarioEntity
-import com.pasteleria_app.pasteleria_app.domain.repository.UsuarioRepository
+import com.pasteleria_app.pasteleria_app.data.model.LoginRequest
+import com.pasteleria_app.pasteleria_app.data.model.User
+import com.pasteleria_app.pasteleria_app.domain.repository.AuthRepository
 import com.pasteleria_app.pasteleria_app.data.preferences.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class UsuarioViewModel @Inject constructor(
-    private val repository: UsuarioRepository,
+    private val authRepository: AuthRepository,
     private val prefs: UserPreferences
 ) : ViewModel() {
 
     val usuarioActual = prefs.userNameFlow
     val usuarioCorreo = prefs.userEmailFlow
-    val usuarioFoto = prefs.userPhotoFlow // ✅ NUEVO
+    val usuarioFoto = prefs.userPhotoFlow
+
+    private val _loginState = MutableStateFlow<Result<Unit>?>(null)
+    val loginState = _loginState.asStateFlow()
+
+    private val _registerState = MutableStateFlow<Result<Unit>?>(null)
+    val registerState = _registerState.asStateFlow()
 
     suspend fun registrarUsuario(
         correo: String,
@@ -29,46 +38,63 @@ class UsuarioViewModel @Inject constructor(
         rut: String?,
         direccion: String?
     ): Boolean {
-        val existente = repository.obtenerUsuarioPorCorreo(correo)
-        if (existente != null) return false
-
-        val nuevo = UsuarioEntity(
+        val newUser = User(
+            run = rut ?: "",
+            dv = null, // Backend might handle or need split
+            nombre = "$primerNombre ${segundoNombre ?: ""}".trim(),
+            apellidos = "$apellidoPaterno ${apellidoMaterno ?: ""}".trim(),
             correo = correo,
-            contrasena = contrasena,
-            primerNombre = primerNombre,
-            segundoNombre = segundoNombre,
-            apellidoPaterno = apellidoPaterno,
-            apellidoMaterno = apellidoMaterno,
-            rut = rut,
-            direccion = direccion
+            password = contrasena, // Note: User model needs password field for registration
+            tipoUsuario = "CLIENTE",
+            fechaNacimiento = null,
+            codigoDescuento = null,
+            regionId = null,
+            regionNombre = null,
+            comuna = null,
+            direccion = direccion,
+            avatarUrl = null
         )
-        repository.registrarUsuario(nuevo)
-        return true
+
+        val result = authRepository.register(newUser)
+        _registerState.value = if (result.isSuccess) Result.success(Unit) else Result.failure(result.exceptionOrNull()!!)
+        return result.isSuccess
     }
 
     suspend fun validarUsuario(correo: String, contrasena: String): Boolean {
-        val usuario = repository.obtenerUsuarioPorCorreo(correo)
-        if (usuario != null && usuario.contrasena == contrasena) {
-            prefs.saveUser(usuario.primerNombre, usuario.correo)
+        val loginResult = authRepository.login(LoginRequest(correo, contrasena))
+        if (loginResult.isSuccess) {
+            val response = loginResult.getOrNull()!!
+            // Guardar token y datos básicos
+            prefs.saveUser(response.nombre, response.correo, response.token)
+            
+            // Obtener ID del usuario
+            val userResult = authRepository.getCurrentUser()
+            if (userResult.isSuccess) {
+                val user = userResult.getOrNull()!!
+                prefs.saveUserId(user.id)
+            }
+            _loginState.value = Result.success(Unit)
             return true
+        } else {
+            _loginState.value = Result.failure(loginResult.exceptionOrNull() ?: Exception("Login failed"))
+            return false
         }
-        return false
     }
 
-    suspend fun obtenerUsuarioPorCorreo(correo: String): UsuarioEntity? {
-        return repository.obtenerUsuarioPorCorreo(correo)
-    }
-
-    fun guardarFotoPerfil(uri: String) { // ✅ NUEVO
+    fun guardarFotoPerfil(uri: String) {
         viewModelScope.launch {
             prefs.saveUserPhoto(uri)
         }
     }
 
+    suspend fun obtenerDatosUsuario(): com.pasteleria_app.pasteleria_app.data.model.UserResponse? {
+        val result = authRepository.getCurrentUser()
+        return result.getOrNull()
+    }
+
     fun cerrarSesion() {
         viewModelScope.launch {
             prefs.clearUser()
-            // ❌ No borramos la foto, para mantenerla persistente
         }
     }
 }

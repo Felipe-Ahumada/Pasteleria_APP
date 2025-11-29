@@ -62,7 +62,8 @@ fun DetalleProductoScreen(
     onOpenCarrito: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
-    carritoViewModel: CarritoViewModel = hiltViewModel()
+    carritoViewModel: CarritoViewModel = hiltViewModel(),
+    productoViewModel: com.pasteleria_app.pasteleria_app.presentation.viewmodel.ProductoViewModel = hiltViewModel()
 ) {
     val crema = MaterialTheme.colorScheme.background
     val marron = MaterialTheme.colorScheme.primary
@@ -70,31 +71,42 @@ fun DetalleProductoScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Decodificar el nombre del producto (por si tiene espacios)
+    // Decodificar el nombre del producto
     val nombreProducto = remember {
         try {
             URLDecoder.decode(nombreProductoUrl, StandardCharsets.UTF_8.name())
         } catch (e: Exception) {
-            nombreProductoUrl // Fallback
+            nombreProductoUrl
         }
     }
 
-    // Encontrar el producto en nuestra lista "espejo"
-    val producto = remember { productos.firstOrNull { it.nombre == nombreProducto } }
+    // Observar productos del backend
+    val productosBackend by productoViewModel.productos.collectAsState()
+    
+    // Encontrar el producto en la lista del backend
+    val producto = remember(productosBackend, nombreProducto) { 
+        productosBackend.firstOrNull { it.nombre == nombreProducto } 
+    }
 
     var cantidad by remember { mutableStateOf(1) }
     var mensaje by remember { mutableStateOf("") }
 
     if (producto == null) {
-        // Fallback si no se encuentra el producto
+        // Fallback si no se encuentra el producto (o está cargando)
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Producto no encontrado")
+            CircularProgressIndicator()
+            LaunchedEffect(Unit) {
+                // Si la lista está vacía, intentar cargarla (aunque CartaScreen ya debería haberlo hecho si es compartido, pero por si acaso)
+                if (productosBackend.isEmpty()) {
+                    productoViewModel.cargarProductos()
+                }
+            }
         }
         return
     }
 
     PasteleriaScaffold(
-        title = producto.nombre, // Título de la página
+        title = producto.nombre,
         onOpenHome = onOpenHome,
         onOpenNosotros = onOpenNosotros,
         onOpenCarta = onOpenCarta,
@@ -113,7 +125,7 @@ fun DetalleProductoScreen(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Breadcrumbs (migas de pan)
+                // Breadcrumbs
                 item {
                     Text(
                         text = "Inicio / Carta / ${producto.nombre}",
@@ -129,44 +141,16 @@ fun DetalleProductoScreen(
                         shape = RoundedCornerShape(16.dp),
                         elevation = CardDefaults.cardElevation(4.dp)
                     ) {
-                        Image(
-                            painter = painterResource(id = producto.imagen),
+                        coil.compose.AsyncImage(
+                            model = producto.imagenPrincipal,
                             contentDescription = producto.nombre,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(300.dp)
                                 .clip(RoundedCornerShape(16.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
-
-                // Miniaturas (simuladas como en la imagen)
-                item {
-                    Row(
-                        Modifier.padding(vertical = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(id = producto.imagen),
-                            contentDescription = "miniatura 1",
-                            modifier = Modifier
-                                .size(60.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .border(2.dp, marron, RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                        Image(
-                            painter = painterResource(id = producto.imagen),
-                            contentDescription = "miniatura 2",
-                            modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                        Image(
-                            painter = painterResource(id = producto.imagen),
-                            contentDescription = "miniatura 3",
-                            modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(R.drawable.torta_cuadrada_de_chocolate),
+                            error = painterResource(R.drawable.torta_cuadrada_de_chocolate)
                         )
                     }
                 }
@@ -178,11 +162,12 @@ fun DetalleProductoScreen(
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = marron,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 16.dp)
                     )
-                    Text("Código: TC001", fontSize = 14.sp, color = Color.Gray) // Código hardcodeado
+                    Text("Código: ${producto.codigoProducto}", fontSize = 14.sp, color = Color.Gray)
                     Text(
-                        text = producto.precio,
+                        text = "$${producto.precio}",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Medium,
                         color = marron,
@@ -194,7 +179,7 @@ fun DetalleProductoScreen(
                 // Descripción
                 item {
                     Text(
-                        text = descripciones[producto.nombre] ?: "Deliciosa torta. Personalizable con mensajes especiales.",
+                        text = producto.descripcion ?: "Sin descripción disponible.",
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(horizontal = 16.dp)
@@ -257,15 +242,18 @@ fun DetalleProductoScreen(
                 item {
                     Button(
                         onClick = {
-                            // Crear el objeto Producto
-                            val productoEntity = Producto(
+                            // Mapear de Backend a Domain (Cart)
+                            val productoCart = com.pasteleria_app.pasteleria_app.domain.model.Producto(
+                                id = 0,
+                                productoId = producto.id ?: 0,
                                 nombre = producto.nombre,
-                                precio = producto.precio.replace("$", "").replace(".", "").toInt(),
-                                imagen = producto.imagen,
+                                precio = producto.precio.toInt(),
+                                imagen = 0,
+                                imagenUrl = producto.imagenPrincipal,
                                 cantidad = cantidad,
-                                mensaje = mensaje.takeIf { it.isNotBlank() } // Añadir mensaje
+                                mensaje = mensaje.takeIf { it.isNotBlank() }
                             )
-                            carritoViewModel.agregarProducto(productoEntity)
+                            carritoViewModel.agregarProducto(productoCart)
                             scope.launch {
                                 snackbarHostState.showSnackbar("¡Agregado al carrito! 🍰")
                             }
@@ -285,7 +273,7 @@ fun DetalleProductoScreen(
                 item {
                     OutlinedButton(
                         onClick = {
-                            compartirProducto(context, producto.nombre, producto.precio)
+                            compartirProducto(context, producto.nombre, "$${producto.precio}")
                         },
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth().height(55.dp)
