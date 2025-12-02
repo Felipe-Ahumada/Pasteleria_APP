@@ -12,6 +12,7 @@ import com.pasteleria_app.pasteleria_app.data.model.Pedido
 import com.pasteleria_app.pasteleria_app.data.model.PedidoItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -59,46 +60,93 @@ class OrdenRepositoryImpl @Inject constructor(
 
     override fun getOrdenes(usuarioId: String): Flow<List<Orden>> {
         return kotlinx.coroutines.flow.flow {
-            try {
-                val pedidos = apiService.getMisPedidos()
-                val ordenes = pedidos.map { pedido ->
-                    Orden(
-                        id = pedido.id?.toString() ?: "",
-                        trackingId = pedido.id?.toString() ?: "",
-                        fechaCreacion = try {
-                            // Parse ISO date string to Long
-                            val format = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
-                            format.parse(pedido.fecha ?: "")?.time ?: 0L
-                        } catch (e: Exception) {
-                            0L
-                        },
-                        estado = pedido.estado,
-                        total = pedido.total.toInt(),
-                        tipoEntrega = pedido.direccionEntrega?.let { "Despacho" } ?: "Retiro",
-                        direccionEntrega = pedido.direccionEntrega ?: "",
-                        comuna = pedido.comuna ?: "",
-                        fechaPreferida = pedido.fechaEntrega ?: "",
-                        items = pedido.items.map { item ->
-                            OrdenItem(
-                                productoId = item.productoId, // Mapear desde backend
-                                nombreProducto = item.productoNombre,
-                                cantidad = item.cantidad,
-                                precioUnitario = item.precioUnitario.toInt(),
-                                subtotal = item.subtotal.toInt(),
-                                mensaje = item.mensaje
-                            )
-                        }
-                    )
-                }
-                emit(ordenes)
-            } catch (e: Exception) {
-                emit(emptyList())
+            val pedidos = apiService.getMisPedidos()
+            val ordenes = pedidos.map { pedido ->
+                Orden(
+                    id = pedido.id?.toString() ?: "",
+                    trackingId = pedido.id?.toString() ?: "",
+                    fechaCreacion = try {
+                        // Parse ISO date string to Long
+                        val format = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+                        format.parse(pedido.fecha ?: "")?.time ?: 0L
+                    } catch (e: Exception) {
+                        0L
+                    },
+                    estado = pedido.estado,
+                    total = pedido.total.toInt(),
+                    tipoEntrega = pedido.direccionEntrega?.let { "Despacho" } ?: "Retiro",
+                    direccionEntrega = pedido.direccionEntrega ?: "",
+                    comuna = pedido.comuna ?: "",
+                    fechaPreferida = pedido.fechaEntrega ?: "",
+                    items = pedido.items.map { item ->
+                        OrdenItem(
+                            productoId = item.productoId, // Mapear desde backend
+                            nombreProducto = item.productoNombre,
+                            cantidad = item.cantidad,
+                            precioUnitario = item.precioUnitario.toInt(),
+                            subtotal = item.subtotal.toInt(),
+                            mensaje = item.mensaje
+                        )
+                    }
+                )
             }
+            emit(ordenes)
+        }.catch { e ->
+            emit(emptyList())
         }
     }
 
     override fun getOrden(ordenId: String): Flow<Orden> {
         return dao.getOrdenPorId(ordenId).map { it.toDomain() }
+    }
+
+    override fun getAllOrdenes(): Flow<List<Orden>> {
+        return kotlinx.coroutines.flow.flow {
+            val pedidos = apiService.getAllPedidos()
+            val ordenes = pedidos.map { pedido ->
+                Orden(
+                    id = pedido.id?.toString() ?: "",
+                    trackingId = pedido.id?.toString() ?: "",
+                    fechaCreacion = try {
+                        val format = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+                        format.parse(pedido.fecha ?: "")?.time ?: 0L
+                    } catch (e: Exception) {
+                        0L
+                    },
+                    estado = pedido.estado,
+                    total = pedido.total.toInt(),
+                    tipoEntrega = pedido.direccionEntrega?.let { "Despacho" } ?: "Retiro",
+                    direccionEntrega = pedido.direccionEntrega ?: "",
+                    comuna = pedido.comuna ?: "",
+                    fechaPreferida = pedido.fechaEntrega ?: "",
+                    items = pedido.items.map { item ->
+                        OrdenItem(
+                            productoId = item.productoId,
+                            nombreProducto = item.productoNombre,
+                            cantidad = item.cantidad,
+                            precioUnitario = item.precioUnitario.toInt(),
+                            subtotal = item.subtotal.toInt(),
+                            mensaje = item.mensaje
+                        )
+                    }
+                )
+            }
+            emit(ordenes)
+        }.catch { e ->
+            emit(emptyList())
+        }
+    }
+
+    override suspend fun updateEstado(ordenId: String, nuevoEstado: String) {
+        try {
+            val idLong = ordenId.toLongOrNull() ?: throw Exception("ID inválido")
+            val response = apiService.updatePedidoEstado(idLong, nuevoEstado)
+            if (!response.isSuccessful) {
+                throw Exception("Error actualizando estado: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            throw e
+        }
     }
 }
 

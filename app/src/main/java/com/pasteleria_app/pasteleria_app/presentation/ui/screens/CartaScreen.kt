@@ -41,6 +41,7 @@ fun CartaScreen(
     onOpenCarrito: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
+    onOpenAdmin: () -> Unit = {}, // ✅ NUEVO
     onOpenDetalle: (String) -> Unit = {},
     carritoViewModel: CarritoViewModel,
     productoViewModel: com.pasteleria_app.pasteleria_app.presentation.viewmodel.ProductoViewModel = androidx.hilt.navigation.compose.hiltViewModel()
@@ -65,6 +66,7 @@ fun CartaScreen(
         onOpenCarrito = onOpenCarrito,
         onOpenLogin = { onOpenLogin() },
         onOpenPerfil = onOpenPerfil,
+        onOpenAdmin = onOpenAdmin, // ✅ NUEVO
         carritoViewModel = carritoViewModel
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
@@ -98,11 +100,11 @@ fun CartaScreen(
                                 // Mapear de Backend (data) a Domain (local/cart)
                                 val productoCart = com.pasteleria_app.pasteleria_app.domain.model.Producto(
                                     id = 0,
-                                    productoId = producto.id ?: 0,
+                                    productoId = producto.productoId, // ✅ Usar productoId
                                     nombre = producto.nombre,
-                                    precio = producto.precio.toInt(),
+                                    precio = producto.precio, // Es Int en domain
                                     imagen = 0, // Placeholder
-                                    imagenUrl = producto.imagenPrincipal,
+                                    imagenUrl = producto.imagenUrl, // ✅ Usar imagenUrl
                                     cantidad = 1
                                 )
                                 carritoViewModel.agregarProducto(productoCart)
@@ -134,7 +136,7 @@ fun CartaScreen(
 
 @Composable
 fun ProductoCard(
-    producto: com.pasteleria_app.pasteleria_app.data.model.Producto,
+    producto: com.pasteleria_app.pasteleria_app.domain.model.Producto, // ✅ Usar Domain Model
     marron: Color,
     onVerDetalle: () -> Unit,
     onAddToCart: () -> Unit
@@ -154,7 +156,7 @@ fun ProductoCard(
             modifier = Modifier.padding(bottom = 12.dp)
         ) {
             coil.compose.AsyncImage(
-                model = producto.imagenPrincipal,
+                model = producto.imagenUrl, // ✅ Usar imagenUrl
                 contentDescription = producto.nombre,
                 modifier = Modifier
                     .fillMaxWidth()

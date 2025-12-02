@@ -36,6 +36,7 @@ fun HomeScreen(
     onOpenCarrito: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
+    onOpenAdmin: () -> Unit = {}, // ✅ NUEVO
     carritoViewModel: CarritoViewModel // ✅ añadimos ViewModel para mostrar badge
 ) {
     val crema = MaterialTheme.colorScheme.background
@@ -50,7 +51,7 @@ fun HomeScreen(
 
     // ✅ Usa el mismo scaffold que las demás pantallas
     PasteleriaScaffold(
-        title = "Pastelería 1000 Sabores",
+        title = "Inicio",
         onOpenHome = onOpenHome,
         onOpenNosotros = onOpenNosotros,
         onOpenCarta = onOpenCarta,
@@ -58,6 +59,7 @@ fun HomeScreen(
         onOpenCarrito = onOpenCarrito,
         onOpenLogin = { onOpenLogin() },
         onOpenPerfil = onOpenPerfil,
+        onOpenAdmin = onOpenAdmin, // ✅ NUEVO
         carritoViewModel = carritoViewModel
     ) { padding ->
         LazyColumn(

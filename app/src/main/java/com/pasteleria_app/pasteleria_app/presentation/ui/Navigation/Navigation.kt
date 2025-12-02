@@ -28,6 +28,12 @@ sealed class Screen(val route: String) {
     data object DetalleOrden : Screen("detalle_orden/{ordenId}")
     // --- AÑADIDO ---
     data object DetalleProducto : Screen("detalle_producto/{nombre}")
+    data object Admin : Screen("admin") // ✅ NUEVO
+    data object AdminProductList : Screen("admin_product_list") // ✅ NUEVO
+    data object AdminProductEdit : Screen("admin_product_edit/{productoId}") // ✅ NUEVO
+    data object AdminOrderList : Screen("admin_order_list") // ✅ NUEVO
+    data object AdminUserList : Screen("admin_user_list") // ✅ NUEVO
+    data object AdminReports : Screen("admin_reports") // ✅ NUEVO
 }
 
 @Composable
@@ -91,6 +97,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                     navController.navigate("detalle_producto/$encodedNombre")
                 },
                 // ---------------
+                onOpenAdmin = { navController.navigate(Screen.Admin.route) }, // ✅ NUEVO
                 carritoViewModel = carritoViewModel
             )
         }
@@ -120,6 +127,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenLogin = { navController.navigate(Screen.Login.route) },
                 onOpenPerfil = { navController.navigate(Screen.Profile.route) },
                 onOpenEnvio = { navController.navigate(Screen.Envio.route) },
+                onOpenAdmin = { navController.navigate(Screen.Admin.route) }, // ✅ NUEVO
                 carritoViewModel = carritoViewModel
             )
         }
@@ -200,6 +208,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenHistorial = {
                     navController.navigate(Screen.HistorialOrdenes.route)
                 },
+                onOpenAdmin = { navController.navigate(Screen.Admin.route) }, // ✅ NUEVO
                 carritoViewModel = carritoViewModel // <-- Añadido
             )
         }
@@ -218,6 +227,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
                 onOpenPerfil = { navController.navigate(Screen.Profile.route) },
                 onOpenLogin = { navController.navigate(Screen.Login.route) }, // <-- Corregido
+                onOpenAdmin = { navController.navigate(Screen.Admin.route) }, // ✅ NUEVO
                 carritoViewModel = carritoViewModel,
             )
         }
@@ -238,6 +248,7 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                     onOpenPerfil = { navController.navigate(Screen.Profile.route) },
                     onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
                     onOpenLogin = { navController.navigate(Screen.Login.route) }, // <-- Corregido
+                    onOpenAdmin = { navController.navigate(Screen.Admin.route) }, // ✅ NUEVO
                     carritoViewModel = carritoViewModel
                 )
             } else {
@@ -268,6 +279,111 @@ fun Navigation(carritoViewModel: CarritoViewModel) { //  Recibe el ViewModel glo
                 navController.popBackStack()
             }
         }
-        // -------------------------
+        
+        // 🔒 Admin Panel
+        composable(Screen.Admin.route) {
+            AdminScreen(
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onOpenProductList = { navController.navigate(Screen.AdminProductList.route) }, // ✅ Conectado
+                onOpenOrderList = { navController.navigate(Screen.AdminOrderList.route) }, // ✅ Conectado
+                onOpenUserList = { navController.navigate(Screen.AdminUserList.route) }, // ✅ Conectado
+                onOpenReports = { navController.navigate(Screen.AdminReports.route) }, // ✅ Conectado
+                carritoViewModel = carritoViewModel
+            )
+        }
+
+        // 📋 Lista de Productos (Admin)
+        composable(Screen.AdminProductList.route) {
+            AdminProductListScreen(
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
+                onBack = { navController.popBackStack() },
+                onEditProduct = { productoId -> 
+                    navController.navigate("admin_product_edit/$productoId") 
+                },
+                carritoViewModel = carritoViewModel
+            )
+        }
+
+        // ✏️ Editar Producto (Admin)
+        composable(
+            route = Screen.AdminProductEdit.route,
+            arguments = listOf(navArgument("productoId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val productoId = backStackEntry.arguments?.getLong("productoId") ?: 0L
+            AdminProductEditScreen(
+                productoId = productoId,
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
+                onBack = { navController.popBackStack() },
+                carritoViewModel = carritoViewModel
+            )
+        }
+
+        // 📦 Lista de Pedidos (Admin)
+        composable(Screen.AdminOrderList.route) {
+            AdminOrderListScreen(
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
+                onBack = { navController.popBackStack() },
+                carritoViewModel = carritoViewModel
+            )
+        }
+
+        // 👥 Lista de Usuarios (Admin)
+        composable(Screen.AdminUserList.route) {
+            AdminUserListScreen(
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
+                onBack = { navController.popBackStack() },
+                carritoViewModel = carritoViewModel
+            )
+        }
+
+        // 📊 Reportes (Admin)
+        composable(Screen.AdminReports.route) {
+            AdminReportScreen(
+                onOpenHome = { navController.navigate(Screen.Home.route) },
+                onOpenNosotros = { navController.navigate(Screen.Nosotros.route) },
+                onOpenCarta = { navController.navigate(Screen.Carta.route) },
+                onOpenContacto = { navController.navigate(Screen.Contacto.route) },
+                onOpenCarrito = { navController.navigate(Screen.Carrito.route) },
+                onOpenLogin = { navController.navigate(Screen.Login.route) },
+                onOpenPerfil = { navController.navigate(Screen.Profile.route) },
+                onBack = { navController.popBackStack() },
+                carritoViewModel = carritoViewModel
+            )
+        }
     }
 }

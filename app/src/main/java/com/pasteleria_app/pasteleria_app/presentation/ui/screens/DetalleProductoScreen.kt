@@ -62,6 +62,7 @@ fun DetalleProductoScreen(
     onOpenCarrito: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
+    onOpenAdmin: () -> Unit = {}, // ✅ NUEVO
     carritoViewModel: CarritoViewModel = hiltViewModel(),
     productoViewModel: com.pasteleria_app.pasteleria_app.presentation.viewmodel.ProductoViewModel = hiltViewModel()
 ) {
@@ -114,6 +115,7 @@ fun DetalleProductoScreen(
         onOpenCarrito = onOpenCarrito,
         onOpenLogin = onOpenLogin,
         onOpenPerfil = onOpenPerfil,
+        onOpenAdmin = onOpenAdmin, // ✅ NUEVO
         carritoViewModel = carritoViewModel
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
@@ -142,7 +144,7 @@ fun DetalleProductoScreen(
                         elevation = CardDefaults.cardElevation(4.dp)
                     ) {
                         coil.compose.AsyncImage(
-                            model = producto.imagenPrincipal,
+                            model = producto.imagenUrl, // ✅ Usar imagenUrl
                             contentDescription = producto.nombre,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -243,13 +245,14 @@ fun DetalleProductoScreen(
                     Button(
                         onClick = {
                             // Mapear de Backend a Domain (Cart)
+                            // Mapear de Backend a Domain (Cart)
                             val productoCart = com.pasteleria_app.pasteleria_app.domain.model.Producto(
                                 id = 0,
-                                productoId = producto.id ?: 0,
+                                productoId = producto.productoId, // ✅ Usar productoId
                                 nombre = producto.nombre,
-                                precio = producto.precio.toInt(),
+                                precio = producto.precio,
                                 imagen = 0,
-                                imagenUrl = producto.imagenPrincipal,
+                                imagenUrl = producto.imagenUrl, // ✅ Usar imagenUrl
                                 cantidad = cantidad,
                                 mensaje = mensaje.takeIf { it.isNotBlank() }
                             )

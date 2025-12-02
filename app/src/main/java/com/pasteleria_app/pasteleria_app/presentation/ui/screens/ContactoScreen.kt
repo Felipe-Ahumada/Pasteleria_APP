@@ -27,6 +27,7 @@ fun ContactoScreen(
     onOpenCarrito: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
+    onOpenAdmin: () -> Unit = {}, // ✅ NUEVO
     carritoViewModel: CarritoViewModel // ✅ necesario para mostrar badge
 ) {
     val crema = MaterialTheme.colorScheme.background
@@ -47,6 +48,7 @@ fun ContactoScreen(
         onOpenCarrito = onOpenCarrito,
         onOpenLogin = { onOpenLogin() },
         onOpenPerfil = onOpenPerfil,
+        onOpenAdmin = onOpenAdmin, // ✅ NUEVO
         carritoViewModel = carritoViewModel // ✅ activa la badge
     ) { padding ->
         Box(

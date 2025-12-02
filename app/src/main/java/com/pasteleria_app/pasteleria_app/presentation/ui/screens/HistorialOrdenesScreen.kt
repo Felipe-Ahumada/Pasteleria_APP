@@ -45,6 +45,7 @@ fun HistorialOrdenesScreen(
     onOpenContacto: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
+    onOpenAdmin: () -> Unit = {}, // ✅ NUEVO
     onNavigateToDetalle: (String) -> Unit,
     onOpenCarrito: () -> Unit,
     carritoViewModel: CarritoViewModel = hiltViewModel(),
@@ -70,6 +71,7 @@ fun HistorialOrdenesScreen(
         onOpenLogin = onOpenLogin,
         onOpenPerfil = onOpenPerfil,
         onOpenCarrito = onOpenCarrito,
+        onOpenAdmin = onOpenAdmin,
         carritoViewModel = carritoViewModel
     ) { padding ->
         LazyColumn(

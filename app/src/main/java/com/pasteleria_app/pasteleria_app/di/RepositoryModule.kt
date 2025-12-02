@@ -8,6 +8,8 @@ import com.pasteleria_app.pasteleria_app.data.repository.CarritoRepositoryImpl
 import com.pasteleria_app.pasteleria_app.data.repository.UsuarioRepositoryImpl
 import com.pasteleria_app.pasteleria_app.data.repository.AuthRepositoryImpl
 import com.pasteleria_app.pasteleria_app.data.repository.ProductoRepositoryImpl
+import com.pasteleria_app.pasteleria_app.domain.repository.ComentarioRepository
+import com.pasteleria_app.pasteleria_app.data.repository.ComentarioRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -38,7 +40,14 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
+
     abstract fun bindProductoRepository(
         impl: ProductoRepositoryImpl
     ): ProductoRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindComentarioRepository(
+        impl: ComentarioRepositoryImpl
+    ): ComentarioRepository
 }

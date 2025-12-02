@@ -44,6 +44,7 @@ fun EnvioScreen(
     onOpenContacto: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
+    onOpenAdmin: () -> Unit = {}, // ✅ NUEVO
     ordenViewModel: OrdenViewModel = hiltViewModel()
 ) {
     val productos by carritoViewModel.productos.collectAsState()
@@ -132,6 +133,7 @@ fun EnvioScreen(
         onOpenContacto = onOpenContacto,
         onOpenLogin = { onOpenLogin() },
         onOpenPerfil = onOpenPerfil,
+        onOpenAdmin = onOpenAdmin, // ✅ NUEVO
         carritoViewModel = carritoViewModel
     ) { padding ->
         LazyColumn(

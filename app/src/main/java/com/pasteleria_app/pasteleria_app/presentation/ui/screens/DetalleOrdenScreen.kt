@@ -47,6 +47,7 @@ fun DetalleOrdenScreen(
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
     onOpenCarrito: () -> Unit,
+    onOpenAdmin: () -> Unit = {}, // ✅ NUEVO
     carritoViewModel: CarritoViewModel = hiltViewModel(),
     ordenViewModel: OrdenViewModel = hiltViewModel()
 ) {
@@ -68,6 +69,7 @@ fun DetalleOrdenScreen(
         onOpenCarrito = onOpenCarrito,
         onOpenLogin = onOpenLogin,
         onOpenPerfil = onOpenPerfil,
+        onOpenAdmin = onOpenAdmin, // ✅ NUEVO
         carritoViewModel = carritoViewModel
     ) { padding ->
         orden?.let { ordenDetalle ->

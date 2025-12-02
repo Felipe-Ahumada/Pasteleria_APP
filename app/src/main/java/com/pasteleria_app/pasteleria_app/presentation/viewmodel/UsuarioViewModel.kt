@@ -21,6 +21,7 @@ class UsuarioViewModel @Inject constructor(
     val usuarioActual = prefs.userNameFlow
     val usuarioCorreo = prefs.userEmailFlow
     val usuarioFoto = prefs.userPhotoFlow
+    val usuarioRol = prefs.userRoleFlow // ✅ NUEVO
 
     private val _loginState = MutableStateFlow<Result<Unit>?>(null)
     val loginState = _loginState.asStateFlow()
@@ -64,8 +65,8 @@ class UsuarioViewModel @Inject constructor(
         val loginResult = authRepository.login(LoginRequest(correo, contrasena))
         if (loginResult.isSuccess) {
             val response = loginResult.getOrNull()!!
-            // Guardar token y datos básicos
-            prefs.saveUser(response.nombre, response.correo, response.token)
+            // Guardar token y datos básicos (incluyendo ROL)
+            prefs.saveUser(response.nombre, response.correo, response.token, response.role)
             
             // Obtener ID del usuario
             val userResult = authRepository.getCurrentUser()

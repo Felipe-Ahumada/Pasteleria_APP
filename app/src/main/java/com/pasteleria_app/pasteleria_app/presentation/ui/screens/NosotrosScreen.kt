@@ -31,6 +31,7 @@ fun NosotrosScreen(
     onOpenCarrito: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
+    onOpenAdmin: () -> Unit = {}, // ✅ NUEVO
     carritoViewModel: CarritoViewModel // 👈 agregado para el badge del carrito
 ) {
     val crema = MaterialTheme.colorScheme.background
@@ -45,6 +46,7 @@ fun NosotrosScreen(
         onOpenCarrito = onOpenCarrito,
         onOpenLogin = { onOpenLogin() },
         onOpenPerfil = onOpenPerfil,
+        onOpenAdmin = onOpenAdmin, // ✅ NUEVO
         carritoViewModel = carritoViewModel
     ) { padding ->
         Column(

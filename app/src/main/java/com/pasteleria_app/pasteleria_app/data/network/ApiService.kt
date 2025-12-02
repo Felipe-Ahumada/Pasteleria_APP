@@ -26,6 +26,15 @@ interface ApiService {
     @GET("api/v1/productos/categoria/{categoriaId}")
     suspend fun getProductosPorCategoria(@Path("categoriaId") categoriaId: Long): List<Producto>
 
+    @POST("api/v1/productos")
+    suspend fun createProducto(@Body producto: Producto): Response<Producto>
+
+    @PUT("api/v1/productos/{id}")
+    suspend fun updateProducto(@Path("id") id: Long, @Body producto: Producto): Response<Producto>
+
+    @DELETE("api/v1/productos/{id}")
+    suspend fun deleteProducto(@Path("id") id: Long): Response<Unit>
+
     // --- Pedidos ---
     @POST("api/v1/pedidos")
     suspend fun createPedido(@Body pedido: Pedido): Response<Pedido>
@@ -42,4 +51,25 @@ interface ApiService {
 
     @PUT("api/v1/users/{id}")
     suspend fun updateUser(@Path("id") id: Long, @Body user: User): Response<User>
+
+    // --- Admin Pedidos ---
+    @GET("api/v1/pedidos/all")
+    suspend fun getAllPedidos(): List<Pedido>
+
+    @PUT("api/v1/pedidos/{id}/estado")
+    suspend fun updatePedidoEstado(@Path("id") id: Long, @Body estado: String): Response<Pedido>
+
+    // --- Admin Users ---
+    @GET("api/v1/users")
+    suspend fun getAllUsers(): List<UserResponse>
+
+    @PUT("api/v1/users/{id}")
+    suspend fun updateAdminUser(@Path("id") id: Long, @Body user: User): Response<User>
+
+    @DELETE("api/v1/users/{id}")
+    suspend fun deleteUser(@Path("id") id: Long): Response<Unit>
+
+    // --- Comentarios ---
+    @GET("api/v1/comentarios")
+    suspend fun getAllComentarios(): List<com.pasteleria_app.pasteleria_app.data.model.Comentario>
 }

@@ -2,7 +2,7 @@ package com.pasteleria_app.pasteleria_app.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pasteleria_app.pasteleria_app.data.model.Producto
+import com.pasteleria_app.pasteleria_app.domain.model.Producto // ✅ Usar Domain Model
 import com.pasteleria_app.pasteleria_app.domain.repository.ProductoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.AdminPanelSettings // ✅ NUEVO
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,7 +46,8 @@ fun PasteleriaScaffold(
     onOpenContacto: () -> Unit = {},
     onOpenCarrito: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
-    onOpenPerfil: () -> Unit = {}, // 👈 nuevo
+    onOpenPerfil: () -> Unit = {},
+    onOpenAdmin: () -> Unit = {}, // 👈 nuevo
     carritoViewModel: CarritoViewModel? = null,
     content: @Composable (PaddingValues) -> Unit
 ) {
@@ -72,7 +74,8 @@ fun PasteleriaScaffold(
                         "Contacto" -> { onOpenContacto(); scope.launch { drawerState.close() } }
                         "Carrito de Compra" -> { onOpenCarrito(); scope.launch { drawerState.close() } }
                         "Login" -> { onOpenLogin(); scope.launch { drawerState.close() } }
-                        "Perfil" -> { onOpenPerfil(); scope.launch { drawerState.close() } } // ✅ añadido
+                        "Perfil" -> { onOpenPerfil(); scope.launch { drawerState.close() } }
+                        "Admin" -> { onOpenAdmin(); scope.launch { drawerState.close() } } // ✅ añadido
                     }
                 },
                 onClose = { scope.launch { drawerState.close() } }
@@ -146,6 +149,7 @@ fun DrawerContent(
     usuarioViewModel: UsuarioViewModel = hiltViewModel() // ✅ agregamos esto
 ) {
     val nombreUsuario by usuarioViewModel.usuarioActual.collectAsState(initial = null)
+    val rolUsuario by usuarioViewModel.usuarioRol.collectAsState(initial = null) // ✅ Observar rol
     val menuItems = listOf("Inicio", "Nosotros", "Carta", "Contacto", "Carrito de Compra")
 
     Column(
@@ -170,6 +174,26 @@ fun DrawerContent(
                     text = item,
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 6.dp)
+                )
+            }
+        }
+
+        // 🔒 Botón Admin (Solo visible para admins)
+        if (rolUsuario == "ROLE_ADMIN" || rolUsuario == "ROLE_SUPERADMIN") {
+            TextButton(onClick = { onItemClick("Admin") }, modifier = Modifier.fillMaxWidth()) {
+                Icon(
+                    imageVector = Icons.Default.AdminPanelSettings,
+                    contentDescription = null,
+                    tint = Color.Yellow,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Panel Admin",
+                    color = Color.Yellow,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(vertical = 6.dp)
                 )
             }

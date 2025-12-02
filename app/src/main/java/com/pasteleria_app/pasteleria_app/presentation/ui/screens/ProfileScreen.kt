@@ -47,6 +47,7 @@ fun ProfileScreen(
     onOpenCarrito: () -> Unit = {},
     onLogout: () -> Unit = {},
     onOpenHistorial: () -> Unit = {}, // <-- Ya está aquí
+    onOpenAdmin: () -> Unit = {}, // ✅ NUEVO
     carritoViewModel: CarritoViewModel = hiltViewModel()
 ) {
     val usuarioViewModel: UsuarioViewModel = hiltViewModel()
@@ -109,6 +110,7 @@ fun ProfileScreen(
         onOpenCarta = onOpenCarta,
         onOpenContacto = onOpenContacto,
         onOpenCarrito = onOpenCarrito,
+        onOpenAdmin = onOpenAdmin, // ✅ NUEVO
         carritoViewModel = carritoViewModel
     ) { padding ->
         Box(

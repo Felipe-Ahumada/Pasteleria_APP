@@ -33,17 +33,16 @@ fun CarritoScreen(
     onOpenLogin: () -> Unit = {},
     onOpenPerfil: () -> Unit = {},
     onOpenEnvio: () -> Unit = {},
+    onOpenAdmin: () -> Unit = {}, // ✅ NUEVO
     carritoViewModel: CarritoViewModel
 ) {
     val productos by carritoViewModel.productos.collectAsState()
 
-    val total by remember(productos) {
-        derivedStateOf { carritoViewModel.calcularTotal() }
-    }
+    val total = carritoViewModel.calcularTotal()
 
 
     PasteleriaScaffold(
-        title = "Carrito de compras",
+        title = "Carrito de Compra",
         onOpenHome = onOpenHome,
         onOpenNosotros = onOpenNosotros,
         onOpenCarta = onOpenCarta,
@@ -51,6 +50,7 @@ fun CarritoScreen(
         onOpenCarrito = onOpenCarrito,
         onOpenLogin = onOpenLogin,
         onOpenPerfil = onOpenPerfil,
+        onOpenAdmin = onOpenAdmin, // ✅ NUEVO
         carritoViewModel = carritoViewModel
     ) { padding ->
         LazyColumn(

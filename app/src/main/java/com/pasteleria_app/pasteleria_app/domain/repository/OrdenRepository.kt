@@ -9,4 +9,8 @@ interface OrdenRepository {
     // ----
     fun getOrdenes(usuarioId: String): Flow<List<Orden>>
     fun getOrden(ordenId: String): Flow<Orden>
+    
+    // Admin
+    fun getAllOrdenes(): Flow<List<Orden>>
+    suspend fun updateEstado(ordenId: String, nuevoEstado: String)
 }

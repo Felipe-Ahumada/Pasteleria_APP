@@ -16,8 +16,9 @@ class UserPreferences(private val context: Context) {
         private val KEY_USER_NAME = stringPreferencesKey("user_name")
         private val KEY_USER_EMAIL = stringPreferencesKey("user_email")
         private val KEY_USER_PHOTO = stringPreferencesKey("user_photo")
-        private val KEY_USER_TOKEN = stringPreferencesKey("user_token") // ✅ NUEVO
-        private val KEY_USER_ID = androidx.datastore.preferences.core.longPreferencesKey("user_id") // ✅ NUEVO
+        private val KEY_USER_TOKEN = stringPreferencesKey("user_token")
+        private val KEY_USER_ID = androidx.datastore.preferences.core.longPreferencesKey("user_id")
+        private val KEY_USER_ROLE = stringPreferencesKey("user_role") // ✅ NUEVO
     }
 
     val userNameFlow: Flow<String?> = context.dataStore.data.map { prefs ->
@@ -32,23 +33,28 @@ class UserPreferences(private val context: Context) {
         prefs[KEY_USER_PHOTO]
     }
 
-    val userTokenFlow: Flow<String?> = context.dataStore.data.map { prefs -> // ✅ NUEVO
+    val userTokenFlow: Flow<String?> = context.dataStore.data.map { prefs ->
         prefs[KEY_USER_TOKEN]
     }
 
-    val userIdFlow: Flow<Long?> = context.dataStore.data.map { prefs -> // ✅ NUEVO
+    val userIdFlow: Flow<Long?> = context.dataStore.data.map { prefs ->
         prefs[KEY_USER_ID]
     }
 
-    suspend fun saveUser(name: String, email: String, token: String) { // <-- Updated signature
+    val userRoleFlow: Flow<String?> = context.dataStore.data.map { prefs -> // ✅ NUEVO
+        prefs[KEY_USER_ROLE]
+    }
+
+    suspend fun saveUser(name: String, email: String, token: String, role: String) { // <-- Updated signature
         context.dataStore.edit { prefs ->
             prefs[KEY_USER_NAME] = name
             prefs[KEY_USER_EMAIL] = email
             prefs[KEY_USER_TOKEN] = token
+            prefs[KEY_USER_ROLE] = role // ✅ NUEVO
         }
     }
 
-    suspend fun saveUserId(id: Long) { // ✅ NUEVO
+    suspend fun saveUserId(id: Long) {
         context.dataStore.edit { prefs ->
             prefs[KEY_USER_ID] = id
         }
@@ -72,6 +78,7 @@ class UserPreferences(private val context: Context) {
             prefs.remove(KEY_USER_EMAIL)
             prefs.remove(KEY_USER_TOKEN)
             prefs.remove(KEY_USER_ID)
+            prefs.remove(KEY_USER_ROLE) // ✅ NUEVO
             // ⚠️ No se borra la foto para mantenerla por usuario
         }
     }

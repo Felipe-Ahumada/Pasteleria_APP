@@ -10,5 +10,6 @@ data class Producto(
     val imagenesDetalle: String?, // JSON string
     val stock: Int,
     val stockCritico: Int,
-    val categoria: Categoria?
+    val categoria: Categoria?,
+    val estado: String? = "ACTIVO"
 )
