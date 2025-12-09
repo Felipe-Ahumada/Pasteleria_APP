@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class CarritoUsuarioEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val correoUsuario: String,
-    val productoId: Int,
+    val productoId: Long,
     val nombre: String,
     val precio: Int,
     val cantidad: Int,

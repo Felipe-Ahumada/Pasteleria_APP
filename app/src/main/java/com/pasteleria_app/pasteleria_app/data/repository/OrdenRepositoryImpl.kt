@@ -43,13 +43,14 @@ class OrdenRepositoryImpl @Inject constructor(
                 )
             },
             direccionEntrega = orden.direccionEntrega,
-            regionNombre = "Biobío",
+            regionNombre = "Biobio",
             comuna = orden.comuna
         )
         
         val response = apiService.createPedido(pedido)
         if (!response.isSuccessful) {
-            throw Exception("Error creando pedido: ${response.code()} ${response.message()}")
+            val errorBody = response.errorBody()?.string() ?: "Error desconocido"
+            throw Exception("Error creando pedido: ${response.code()} $errorBody")
         }
         
         // Opcional: Guardar en local también para respaldo

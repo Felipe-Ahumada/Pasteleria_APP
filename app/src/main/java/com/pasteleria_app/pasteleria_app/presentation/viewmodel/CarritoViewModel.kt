@@ -79,12 +79,12 @@ class CarritoViewModel @Inject constructor(
                 carritoUsuarioDao.agregarProductoAlCarrito(
                     CarritoUsuarioEntity(
                         correoUsuario = correo,
-                        productoId = p.id,
+                        productoId = p.productoId, // ✅ Usar ID del backend
                         nombre = p.nombre,
                         precio = p.precio,
                         cantidad = p.cantidad,
                         imagen = p.imagen,
-                        mensaje = p.mensaje // <-- Esto ya está correcto
+                        mensaje = p.mensaje
                     )
                 )
             }
@@ -100,12 +100,13 @@ class CarritoViewModel @Inject constructor(
             guardados.forEach { item ->
                 repository.agregarProducto(
                     com.pasteleria_app.pasteleria_app.domain.model.Producto(
-                        id = item.productoId,
+                        id = 0, // 0 para que Room genere nuevo ID local
+                        productoId = item.productoId, // ✅ Recuperar ID del backend
                         nombre = item.nombre,
                         precio = item.precio,
                         cantidad = item.cantidad,
                         imagen = item.imagen,
-                        mensaje = item.mensaje // <-- Esto ya está correcto
+                        mensaje = item.mensaje
                     )
                 )
             }

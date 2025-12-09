@@ -71,6 +71,18 @@ class OrdenViewModel @Inject constructor(
         }
         // -------------------------
 
+        // Formatear fecha para backend (ISO-8601)
+        val fechaBackend = try {
+            val inputFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+            val outputFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+            val date = inputFormat.parse(fechaEntrega)
+            outputFormat.format(date ?: Date())
+        } catch (e: Exception) {
+            // Fallback a fecha actual en formato ISO si falla
+             val outputFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+             outputFormat.format(Date())
+        }
+
         val direccionFinal = if (tipoEntrega == "Retiro en tienda") "Retiro en tienda" else direccion
         val nuevaOrden = Orden(
             id = pedidoId,
@@ -81,7 +93,7 @@ class OrdenViewModel @Inject constructor(
             tipoEntrega = tipoEntrega,
             direccionEntrega = direccionFinal,
             comuna = comuna,
-            fechaPreferida = fechaEntrega,
+            fechaPreferida = fechaBackend, // Usar fecha formateada
             items = items
         )
 
