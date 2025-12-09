@@ -5,12 +5,13 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "carrito_usuario")
 data class CarritoUsuarioEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val correoUsuario: String,
     val productoId: Long,
     val nombre: String,
     val precio: Int,
     val cantidad: Int,
     val imagen: Int,
+    val imagenUrl: String? = null, // ✅ AÑADIDO
     val mensaje: String? = null // <-- AÑADIDO
 )

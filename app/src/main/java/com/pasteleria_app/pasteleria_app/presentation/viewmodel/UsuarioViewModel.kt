@@ -46,7 +46,7 @@ class UsuarioViewModel @Inject constructor(
             apellidos = "$apellidoPaterno ${apellidoMaterno ?: ""}".trim(),
             correo = correo,
             password = contrasena, // Note: User model needs password field for registration
-            tipoUsuario = "CLIENTE",
+            tipoUsuario = "ROLE_CUSTOMER",
             fechaNacimiento = null,
             codigoDescuento = null,
             regionId = null,

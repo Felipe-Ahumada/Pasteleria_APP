@@ -72,4 +72,27 @@ interface ApiService {
     // --- Comentarios ---
     @GET("api/v1/comentarios")
     suspend fun getAllComentarios(): List<com.pasteleria_app.pasteleria_app.data.model.Comentario>
+    // --- Carrito ---
+    // --- Carrito ---
+    @GET("api/v1/cart")
+    suspend fun getCart(): Response<CartResponse>
+
+    @POST("api/v1/cart/items")
+    suspend fun addToCart(
+        @Body request: AddToCartRequest
+    ): Response<CartResponse>
+
+    @PUT("api/v1/cart/items/{itemId}")
+    suspend fun updateCartItem(
+        @Path("itemId") itemId: Long,
+        @Body payload: Map<String, Int>
+    ): Response<CartResponse>
+
+    @DELETE("api/v1/cart/items/{itemId}")
+    suspend fun removeCartItem(
+        @Path("itemId") itemId: Long
+    ): Response<CartResponse>
+
+    @DELETE("api/v1/cart")
+    suspend fun clearCart(): Response<Unit>
 }

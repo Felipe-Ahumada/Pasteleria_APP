@@ -21,6 +21,13 @@ import com.pasteleria_app.pasteleria_app.presentation.ui.components.PasteleriaSc
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.CarritoViewModel
 import com.pasteleria_app.pasteleria_app.presentation.ui.viewmodel.UsuarioViewModel
 import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.text.SimpleDateFormat
+import java.util.TimeZone
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,24 +156,84 @@ fun RegisterScreen(
                         )
 
                         // 🎂 Fecha con auto-slash
-                        ValidatedField(
-                            label = "Fecha de nacimiento (opcional)",
-                            placeholder = "dd/mm/aaaa",
+                        // 🎂 Fecha con DatePicker (Validación +18)
+                        val calendar = Calendar.getInstance()
+                        calendar.add(Calendar.YEAR, -18)
+                        val eighteenYearsAgoMillis = calendar.timeInMillis
+
+                        val datePickerState = rememberDatePickerState(
+                            initialSelectedDateMillis = eighteenYearsAgoMillis,
+                            yearRange = 1920..calendar.get(Calendar.YEAR),
+                            selectableDates = object : SelectableDates {
+                                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                                    return utcTimeMillis <= eighteenYearsAgoMillis
+                                }
+                            }
+                        )
+                        var showDatePicker by remember { mutableStateOf(false) }
+
+                        OutlinedTextField(
                             value = fechaNacimiento,
-                            onValueChange = {
-                                val cleaned = it.filter { c -> c.isDigit() }.take(8)
-                                fechaNacimiento = when {
-                                    cleaned.length >= 5 ->
-                                        "${cleaned.take(2)}/${cleaned.drop(2).take(2)}/${cleaned.drop(4)}"
-                                    cleaned.length >= 3 ->
-                                        "${cleaned.take(2)}/${cleaned.drop(2)}"
-                                    else -> cleaned
+                            onValueChange = { },
+                            label = { Text("Fecha de nacimiento (opcional)") },
+                            placeholder = { Text("dd/mm/aaaa") },
+                            readOnly = true,
+                            trailingIcon = {
+                                IconButton(onClick = { showDatePicker = true }) {
+                                    Icon(Icons.Default.CalendarMonth, contentDescription = "Seleccionar fecha")
                                 }
                             },
-                            showError = fechaNacimiento.isNotBlank() &&
+                            isError = fechaNacimiento.isNotBlank() &&
                                     !fechaNacimiento.matches(Regex("^\\d{2}/\\d{2}/\\d{4}\$")),
-                            errorText = "Formato inválido (dd/mm/aaaa)"
+                            supportingText = {
+                                if (fechaNacimiento.isNotBlank() &&
+                                    !fechaNacimiento.matches(Regex("^\\d{2}/\\d{2}/\\d{4}\$"))) {
+                                    Text("Formato inválido", color = MaterialTheme.colorScheme.error)
+                                } else {
+                                    Text("Debes ser mayor de 18 años", fontSize = 11.sp, color = Color.Gray)
+                                }
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .clickable { showDatePicker = true } // Make whole field clickable
                         )
+
+                        if (showDatePicker) {
+                            DatePickerDialog(
+                                onDismissRequest = { showDatePicker = false },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        val millis = datePickerState.selectedDateMillis
+                                        if (millis != null) {
+                                            val fecha = Date(millis)
+                                            val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                                            formato.timeZone = TimeZone.getTimeZone("UTC")
+                                            fechaNacimiento = formato.format(fecha)
+                                        }
+                                        showDatePicker = false
+                                    }) { Text("Aceptar") }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
+                                }
+                            ) {
+                                DatePicker(
+                                    state = datePickerState,
+                                    title = { Text("Selecciona tu fecha de nacimiento", modifier = Modifier.padding(16.dp)) },
+                                    headline = { Text("Debes ser mayor de 18 años", modifier = Modifier.padding(horizontal = 16.dp)) },
+                                    showModeToggle = false,
+                                    colors = DatePickerDefaults.colors(
+                                        containerColor = Color(0xFFFDF8F4),
+                                        selectedDayContainerColor = marron,
+                                        selectedDayContentColor = Color.White,
+                                        todayContentColor = marron,
+                                        weekdayContentColor = marron,
+                                    )
+                                )
+                            }
+                        }
 
                         campoBlanco("Teléfono (opcional)", "+56 9 1234 5678", telefono) { telefono = it }
 

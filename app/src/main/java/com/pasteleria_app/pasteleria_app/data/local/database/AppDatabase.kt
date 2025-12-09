@@ -15,7 +15,7 @@ import com.pasteleria_app.pasteleria_app.data.local.dao.OrdenDao
 @Database(
     entities = [ProductoEntity::class, UsuarioEntity::class, CarritoUsuarioEntity::class, OrdenEntity::class,
         OrdenItemEntity::class],
-    version = 15,
+    version = 17,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

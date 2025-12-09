@@ -84,6 +84,7 @@ class CarritoViewModel @Inject constructor(
                         precio = p.precio,
                         cantidad = p.cantidad,
                         imagen = p.imagen,
+                        imagenUrl = p.imagenUrl, // ✅ Guardar URL
                         mensaje = p.mensaje
                     )
                 )
@@ -106,6 +107,7 @@ class CarritoViewModel @Inject constructor(
                         precio = item.precio,
                         cantidad = item.cantidad,
                         imagen = item.imagen,
+                        imagenUrl = item.imagenUrl, // ✅ Recuperar URL
                         mensaje = item.mensaje
                     )
                 )

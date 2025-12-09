@@ -20,15 +20,19 @@ class CarritoRepositoryImplTest {
     private lateinit var repository: CarritoRepositoryImpl
     private val dao: CarritoDao = mockk(relaxed = true)
 
+    private val apiService: com.pasteleria_app.pasteleria_app.data.network.ApiService = mockk(relaxed = true)
+    private val userPreferences: com.pasteleria_app.pasteleria_app.data.preferences.UserPreferences = mockk(relaxed = true)
+
     @Before
     fun setup() {
-        repository = CarritoRepositoryImpl(dao)
+        coEvery { userPreferences.userTokenFlow } returns flowOf("")
+        repository = CarritoRepositoryImpl(dao, apiService, userPreferences)
     }
 
     @Test
     fun `obtenerProductos success`() = runTest {
         val entity = ProductoEntity(
-            id = 1, nombre = "Pastel", precio = 1000, imagen = 0, cantidad = 1, mensaje = "msg"
+            id = 1L, productoId = 1L, nombre = "Pastel", precio = 1000, imagen = 0, imagenUrl = "url", cantidad = 1, mensaje = "msg"
         )
         coEvery { dao.obtenerProductos() } returns flowOf(listOf(entity))
 
@@ -59,7 +63,7 @@ class CarritoRepositoryImplTest {
             codigoProducto = "code", descripcion = "desc", stock = 10, stockCritico = 5, categoria = null, estado = "ACTIVO"
         )
         val entity = ProductoEntity(
-            id = 1, nombre = "Pastel", precio = 1000, imagen = 0, cantidad = 1, mensaje = "msg"
+            id = 1L, productoId = 1L, nombre = "Pastel", precio = 1000, imagen = 0, imagenUrl = "url", cantidad = 1, mensaje = "msg"
         )
         coEvery { dao.obtenerProductoPorNombre("Pastel") } returns entity
 
@@ -97,7 +101,7 @@ class CarritoRepositoryImplTest {
     @Test
     fun `obtenerProductoPorNombre found`() = runTest {
         val entity = ProductoEntity(
-            id = 1, nombre = "Pastel", precio = 1000, imagen = 0, cantidad = 1, mensaje = "msg"
+            id = 1L, productoId = 1L, nombre = "Pastel", precio = 1000, imagen = 0, imagenUrl = "url", cantidad = 1, mensaje = "msg"
         )
         coEvery { dao.obtenerProductoPorNombre("Pastel") } returns entity
 
@@ -131,7 +135,7 @@ class CarritoRepositoryImplTest {
             codigoProducto = "code", descripcion = "desc", stock = 10, stockCritico = 5, categoria = null, estado = "ACTIVO", cantidad = 2
         )
         val entity = ProductoEntity(
-            id = 1, nombre = "Pastel", precio = 1000, imagen = 0, cantidad = 1, mensaje = "msg"
+            id = 1L, productoId = 1L, nombre = "Pastel", precio = 1000, imagen = 0, imagenUrl = "url", cantidad = 1, mensaje = "msg"
         )
         coEvery { dao.obtenerProductoPorNombre("Pastel") } returns entity
 

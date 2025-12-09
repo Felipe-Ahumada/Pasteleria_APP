@@ -30,7 +30,7 @@ abstract class RepositoryModule {
     @Singleton
     abstract fun bindUsuarioRepository(
         impl: UsuarioRepositoryImpl
-    ): UsuarioRepository
+         ): UsuarioRepository
 
     @Binds
     @Singleton
